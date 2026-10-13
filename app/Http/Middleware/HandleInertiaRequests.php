@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Closure;
+use App\Models\SiteContent;
 use Symfony\Component\HttpFoundation\Response;
 
 class HandleInertiaRequests extends Middleware
@@ -42,6 +43,7 @@ class HandleInertiaRequests extends Middleware
                     'is_super_admin' => $user->isSuperAdmin(),
                     'is_admin' => $user->isAdmin(),
                     'is_staff' => $user->isStaff(),
+                    'permissions' => $user->permissionNames(),
                     'company' => $user->company ? [
                         'id' => $user->company->id,
                         'name' => $user->company->name,
@@ -58,6 +60,17 @@ class HandleInertiaRequests extends Middleware
             'flash' => [
                 'message' => fn () => $request->session()->get('message'),
             ],
+            'theme' => fn () => $request->session()->get('theme', 'dark'),
+            'branding' => function () {
+                $content = SiteContent::query()->orderBy('id')->first();
+
+                return [
+                    'name' => $content?->brand_name ?: config('site.defaults.brand_name', 'Staff7'),
+                    'logo_dark' => $content?->logo_dark,
+                    'logo_light' => $content?->logo_light,
+                    'favicon' => $content?->favicon,
+                ];
+            },
         ];
     }
 }

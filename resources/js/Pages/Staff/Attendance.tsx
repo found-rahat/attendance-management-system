@@ -4,6 +4,8 @@ import { Circle, MapContainer, Marker, Popup, TileLayer, useMap } from 'react-le
 import L from 'leaflet';
 import axios from 'axios';
 import AppLayout from '../../Layouts/AppLayout';
+import { Icon } from '../../components/Icons';
+import { Badge, PageHeader } from '../../components/ui';
 import { checkInIcon, currentIcon, officeIcon } from '../../lib/leaflet';
 import { formatDateTime } from '../../lib/datetime';
 
@@ -66,15 +68,8 @@ export default function StaffAttendance({ attendance, office }: Props) {
 
                     resolve({ latitude, longitude, accuracy });
                 },
-                () =>
-                    reject(
-                        new Error('Location permission দিন এবং GPS চালু করুন।'),
-                    ),
-                {
-                    enableHighAccuracy: true,
-                    timeout: 15000,
-                    maximumAge: 0,
-                },
+                () => reject(new Error('Location permission দিন এবং GPS চালু করুন।')),
+                { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
             );
         });
     }
@@ -110,9 +105,7 @@ export default function StaffAttendance({ attendance, office }: Props) {
 
         try {
             const location = await getLocation();
-
             await axios.post(`/attendance/${action}`, location);
-
             window.location.reload();
         } catch (e: any) {
             setError(
@@ -129,202 +122,144 @@ export default function StaffAttendance({ attendance, office }: Props) {
 
     return (
         <AppLayout>
-            <Head title="Staff Attendance" />
+            <Head title="Attendance" />
 
-            <main className="mx-auto max-w-5xl space-y-5 p-4">
-                <h1 className="text-2xl font-bold">Staff Attendance</h1>
+            <PageHeader icon="location" title="Attendance" subtitle={`${office.name} · radius ${office.radius}m`}>
+                <button type="button" onClick={detectLocation} disabled={locating} className="btn-ghost">
+                    <Icon name="location" size={18} />
+                    {locating ? 'Detecting...' : 'Detect my location'}
+                </button>
+            </PageHeader>
 
-                <div className="rounded-xl border bg-white p-4 shadow-sm">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                        <div>
-                            <h2 className="text-lg font-semibold">{office.name}</h2>
-                            <p className="text-sm text-gray-600">
-                                Office radius: {office.radius} meters · Latitude{' '}
-                                {office.latitude.toFixed(6)} · Longitude{' '}
-                                {office.longitude.toFixed(6)}
-                            </p>
-                        </div>
+            <div className="card p-4">
+                <div className="my-1 h-80 overflow-hidden rounded-xl border border-line">
+                    <MapContainer center={officePosition} zoom={17} className="h-full w-full">
+                        <TileLayer
+                            attribution='&copy; OpenStreetMap contributors'
+                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                        />
 
-                        <button
-                            type="button"
-                            onClick={detectLocation}
-                            disabled={locating}
-                            className="rounded-md border border-gray-300 px-3 py-2 text-sm hover:bg-gray-100 disabled:opacity-50"
-                        >
-                            {locating ? 'Detecting...' : '📍 Detect my location'}
-                        </button>
-                    </div>
-
-                    <div className="my-4 h-80 overflow-hidden rounded-lg border">
-                        <MapContainer
+                        <Circle
                             center={officePosition}
-                            zoom={17}
-                            className="h-full w-full"
-                        >
-                            <TileLayer
-                                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                            />
+                            radius={office.radius}
+                            pathOptions={{ color: 'green', fillColor: 'green', fillOpacity: 0.08 }}
+                        />
 
-                            <Circle
-                                center={officePosition}
-                                radius={office.radius}
-                                pathOptions={{ color: 'green', fillColor: 'green', fillOpacity: 0.08 }}
-                            />
+                        <Marker position={officePosition} icon={officeIcon}>
+                            <Popup>{office.name}</Popup>
+                        </Marker>
 
-                            <Marker position={officePosition} icon={officeIcon}>
-                                <Popup>{office.name}</Popup>
+                        <RecenterMap current={current} office={officePosition} />
+
+                        {current && currentRef.current && (
+                            <Marker position={currentRef.current} icon={currentIcon}>
+                                <Popup>Your current location</Popup>
                             </Marker>
-
-                            <RecenterMap current={current} office={officePosition} />
-
-                            {current && currentRef.current && (
-                                <Marker position={currentRef.current} icon={currentIcon}>
-                                    <Popup>Your current location</Popup>
-                                </Marker>
-                            )}
-
-                            {attendance?.check_in_latitude != null &&
-                                attendance?.check_in_longitude != null && (
-                                    <Marker
-                                        position={[
-                                            attendance.check_in_latitude,
-                                            attendance.check_in_longitude,
-                                        ]}
-                                        icon={checkInIcon}
-                                    >
-                                        <Popup>Check In location</Popup>
-                                    </Marker>
-                                )}
-                        </MapContainer>
-                    </div>
-
-                    <div className="space-y-1 text-sm text-gray-600">
-                        {current ? (
-                            <>
-                                <p>
-                                    Latitude: {current[0].toFixed(7)} · Longitude:{' '}
-                                    {current[1].toFixed(7)}{' '}
-                                    <a
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        href={`https://www.openstreetmap.org/?mlat=${current[0]}&mlon=${current[1]}#map=17/${current[0]}/${current[1]}`}
-                                        className="text-indigo-600 hover:underline"
-                                    >
-                                        View detected location
-                                    </a>
-                                </p>
-                                {accuracy != null && (
-                                    <p
-                                        className={
-                                            accuracy > office.max_accuracy
-                                                ? 'text-amber-600'
-                                                : ''
-                                        }
-                                    >
-                                        GPS accuracy: {Math.round(accuracy)}m
-                                        {accuracy > office.max_accuracy &&
-                                            ` (weak — ${office.max_accuracy}m-এর বেশি; approximate location)`}
-                                    </p>
-                                )}
-                                {distance != null && (
-                                    <p
-                                        className={
-                                            distance <= office.radius
-                                                ? 'text-green-600'
-                                                : 'text-red-600'
-                                        }
-                                    >
-                                        Distance from office:{' '}
-                                        {Math.round(distance)}m{' '}
-                                        {distance <= office.radius
-                                            ? '(inside ✓)'
-                                            : '(outside — flagged ⚠️)'}
-                                    </p>
-                                )}
-                                {distance != null && distance > 2000 && (
-                                    <p className="rounded-md bg-amber-50 p-2 text-amber-700">
-                                        ⚠️ আপনার device যা location দিচ্ছে তা office থেকে প্রায়{' '}
-                                        {Math.round(distance / 1000)} km দূরে। এটা সাধারণত
-                                        device-এর location ভুল হওয়ার কারণে হয় — VPN বন্ধ করুন,
-                                        mock/fake GPS বন্ধ করুন, এবং ফোনে GPS দিয়ে খোলা জায়গা
-                                        থেকে আবার চেষ্টা করুন।
-                                    </p>
-                                )}
-                            </>
-                        ) : (
-                            <p>
-                                যেকোনো জায়গা থেকে Check In/Out করা যাবে। Office radius থেকে
-                                বাইরে হলে attendance flag করা হবে।
-                            </p>
                         )}
-                    </div>
 
-                    {error && (
-                        <p role="alert" className="my-3 rounded-md bg-red-50 p-3 text-sm text-red-700">
-                            {error}
+                        {attendance?.check_in_latitude != null && attendance?.check_in_longitude != null && (
+                            <Marker position={[attendance.check_in_latitude, attendance.check_in_longitude]} icon={checkInIcon}>
+                                <Popup>Check In location</Popup>
+                            </Marker>
+                        )}
+                    </MapContainer>
+                </div>
+
+                <div className="mt-4 space-y-1 text-sm text-muted">
+                    {current ? (
+                        <>
+                            <p>
+                                Latitude: {current[0].toFixed(7)} · Longitude: {current[1].toFixed(7)}{' '}
+                                <a
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    href={`https://www.openstreetmap.org/?mlat=${current[0]}&mlon=${current[1]}#map=17/${current[0]}/${current[1]}`}
+                                    className="text-brand-3 hover:underline"
+                                >
+                                    View detected location
+                                </a>
+                            </p>
+                            {accuracy != null && (
+                                <p className={accuracy > office.max_accuracy ? 'text-warn' : ''}>
+                                    GPS accuracy: {Math.round(accuracy)}m
+                                    {accuracy > office.max_accuracy &&
+                                        ` (weak — ${office.max_accuracy}m-এর বেশি; approximate location)`}
+                                </p>
+                            )}
+                            {distance != null && (
+                                <p className={distance <= office.radius ? 'text-ok' : 'text-danger'}>
+                                    Distance from office: {Math.round(distance)}m{' '}
+                                    {distance <= office.radius ? '(inside ✓)' : '(outside — flagged ⚠️)'}
+                                </p>
+                            )}
+                            {distance != null && distance > 2000 && (
+                                <p className="rounded-xl border border-warn/40 bg-warn/10 p-3 text-warn-soft">
+                                    ⚠️ আপনার device যা location দিচ্ছে তা office থেকে প্রায়{' '}
+                                    {Math.round(distance / 1000)} km দূরে। এটা সাধারণত device-এর location ভুল
+                                    হওয়ার কারণে হয় — VPN বন্ধ করুন, mock/fake GPS বন্ধ করুন, এবং ফোনে GPS দিয়ে
+                                    খোলা জায়গা থেকে আবার চেষ্টা করুন।
+                                </p>
+                            )}
+                        </>
+                    ) : (
+                        <p>
+                            যেকোনো জায়গা থেকে Check In/Out করা যাবে। Office radius থেকে বাইরে হলে attendance
+                            flag করা হবে।
                         </p>
                     )}
-
-                    <div className="mt-4 flex flex-wrap gap-3">
-                        <button
-                            type="button"
-                            disabled={loading !== null || alreadyCheckedIn}
-                            onClick={() => submitAttendance('check-in')}
-                            className="rounded-lg bg-green-700 px-5 py-3 font-medium text-white hover:bg-green-800 disabled:opacity-50"
-                        >
-                            {loading === 'in' ? 'Please wait...' : 'Check In'}
-                        </button>
-
-                        <button
-                            type="button"
-                            disabled={loading !== null || !alreadyCheckedIn || alreadyCheckedOut}
-                            onClick={() => submitAttendance('check-out')}
-                            className="rounded-lg bg-blue-700 px-5 py-3 font-medium text-white hover:bg-blue-800 disabled:opacity-50"
-                        >
-                            {loading === 'out' ? 'Please wait...' : 'Check Out'}
-                        </button>
-                    </div>
-
-                    <div className="mt-5 grid gap-1 rounded-md bg-gray-50 p-3 text-sm sm:grid-cols-2">
-                        <p>
-                            <span className="font-medium">Check In:</span>{' '}
-                            {formatDateTime(attendance?.check_in_at)}
-                            {attendance?.check_in_distance != null &&
-                                ` (${Math.round(attendance.check_in_distance)}m from office)`}
-                            {attendance?.check_in_outside && (
-                                <span className="ml-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
-                                    outside ⚠️
-                                </span>
-                            )}
-                        </p>
-                        <p>
-                            <span className="font-medium">Check Out:</span>{' '}
-                            {formatDateTime(attendance?.check_out_at)}
-                            {attendance?.check_out_outside && (
-                                <span className="ml-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
-                                    outside ⚠️
-                                </span>
-                            )}
-                        </p>
-                        <p>
-                            <span className="font-medium">Status:</span>{' '}
-                            {attendance?.status ?? '—'}
-                        </p>
-                    </div>
                 </div>
-            </main>
+
+                {error && (
+                    <p role="alert" className="my-3 rounded-xl border border-danger/40 bg-danger/10 p-3 text-sm text-danger-soft">
+                        {error}
+                    </p>
+                )}
+
+                <div className="mt-4 flex flex-wrap gap-3">
+                    <button
+                        type="button"
+                        disabled={loading !== null || alreadyCheckedIn}
+                        onClick={() => submitAttendance('check-in')}
+                        className="inline-flex items-center gap-2 rounded-xl border border-ok/50 bg-ok/15 px-6 py-3 font-semibold text-ok-soft transition hover:bg-ok/25 disabled:opacity-50"
+                    >
+                        <Icon name="userOk" size={18} />
+                        {loading === 'in' ? 'Please wait...' : 'Check In'}
+                    </button>
+
+                    <button
+                        type="button"
+                        disabled={loading !== null || !alreadyCheckedIn || alreadyCheckedOut}
+                        onClick={() => submitAttendance('check-out')}
+                        className="inline-flex items-center gap-2 rounded-xl border border-info/50 bg-info/15 px-6 py-3 font-semibold text-info-soft transition hover:bg-info/25 disabled:opacity-50"
+                    >
+                        <Icon name="logout" size={18} />
+                        {loading === 'out' ? 'Please wait...' : 'Check Out'}
+                    </button>
+                </div>
+
+                <div className="mt-5 grid gap-2 rounded-xl border border-line-2 bg-panel-3 p-4 text-sm sm:grid-cols-2">
+                    <p>
+                        <span className="font-medium text-ink-soft">Check In:</span>{' '}
+                        {formatDateTime(attendance?.check_in_at)}
+                        {attendance?.check_in_distance != null &&
+                            ` (${Math.round(attendance.check_in_distance)}m from office)`}
+                        {attendance?.check_in_outside && <Badge tone="gold">outside</Badge>}
+                    </p>
+                    <p>
+                        <span className="font-medium text-ink-soft">Check Out:</span>{' '}
+                        {formatDateTime(attendance?.check_out_at)}
+                        {attendance?.check_out_outside && <Badge tone="gold">outside</Badge>}
+                    </p>
+                    <p>
+                        <span className="font-medium text-ink-soft">Status:</span> {attendance?.status ?? '—'}
+                    </p>
+                </div>
+            </div>
         </AppLayout>
     );
 }
 
-function RecenterMap({
-    current,
-    office,
-}: {
-    current: [number, number] | null;
-    office: [number, number];
-}) {
+function RecenterMap({ current, office }: { current: [number, number] | null; office: [number, number] }) {
     const map = useMap();
 
     useEffect(() => {

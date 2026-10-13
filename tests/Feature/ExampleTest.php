@@ -21,7 +21,7 @@ class ExampleTest extends TestCase
         $response->assertInertia(fn ($page) => $page->component('Landing'));
     }
 
-    public function test_authenticated_user_is_redirected_to_their_home(): void
+    public function test_authenticated_user_can_still_view_the_landing_page(): void
     {
         $user = User::factory()->create([
             'role' => 'super_admin',
@@ -30,6 +30,7 @@ class ExampleTest extends TestCase
 
         $this->actingAs($user)
             ->get('/')
-            ->assertRedirect(route('super.dashboard'));
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page->component('Landing'));
     }
 }

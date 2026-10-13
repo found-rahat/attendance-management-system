@@ -1,6 +1,11 @@
-import { Head, Link, router } from '@inertiajs/react';
-import { useState } from 'react';
+import { Head, router } from '@inertiajs/react';
+import { useEffect, useState } from 'react';
+import { Circle, MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet';
+import L from 'leaflet';
 import AppLayout from '../../Layouts/AppLayout';
+import { Icon } from '../../components/Icons';
+import { Badge, EmptyRow, Modal, PageHeader, Pagination } from '../../components/ui';
+import { checkInIcon, officeIcon } from '../../lib/leaflet';
 import { formatDate, formatDateTime } from '../../lib/datetime';
 
 type Record = {
@@ -15,6 +20,14 @@ type Record = {
     status: string;
 };
 
+type Office = {
+    name: string;
+    latitude: number;
+    longitude: number;
+    radius: number;
+    max_accuracy: number;
+};
+
 type Props = {
     records: {
         data: Record[];
@@ -23,12 +36,14 @@ type Props = {
         prev_page_url: string | null;
         next_page_url: string | null;
     };
+    office: Office;
     filters: { from: string | null; to: string | null };
 };
 
-export default function StaffHistory({ records, filters }: Props) {
+export default function StaffHistory({ records, office, filters }: Props) {
     const [from, setFrom] = useState(filters.from ?? '');
     const [to, setTo] = useState(filters.to ?? '');
+    const [selected, setSelected] = useState<Record | null>(null);
 
     function search() {
         router.get(
@@ -39,123 +54,193 @@ export default function StaffHistory({ records, filters }: Props) {
     }
 
     const rows = records.data;
+    const officePosition: [number, number] = [office.latitude, office.longitude];
+    const staffPosition: [number, number] | null =
+        selected?.check_in_latitude != null && selected?.check_in_longitude != null
+            ? [selected.check_in_latitude, selected.check_in_longitude]
+            : null;
 
     return (
         <AppLayout>
             <Head title="My Attendance History" />
 
-            <main className="mx-auto max-w-5xl space-y-5 p-4">
-                <h1 className="text-2xl font-bold">My Attendance History</h1>
+            <PageHeader icon="clock" title="My Attendance History" subtitle="Your check-in and check-out records." />
 
-                <div className="flex flex-wrap items-end gap-3 rounded-xl border bg-white p-4">
-                    <label className="text-sm">
-                        From
-                        <input
-                            type="date"
-                            value={from}
-                            onChange={(e) => setFrom(e.target.value)}
-                            className="mt-1 block rounded-md border border-gray-300 p-2"
-                        />
-                    </label>
+            <div className="card flex flex-wrap items-end gap-4 p-4">
+                <label className="text-sm">
+                    <span className="label">From</span>
+                    <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="input" />
+                </label>
+                <label className="text-sm">
+                    <span className="label">To</span>
+                    <input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="input" />
+                </label>
+                <button type="button" onClick={search} className="btn-primary">
+                    <Icon name="search" size={18} /> Search
+                </button>
+            </div>
 
-                    <label className="text-sm">
-                        To
-                        <input
-                            type="date"
-                            value={to}
-                            onChange={(e) => setTo(e.target.value)}
-                            className="mt-1 block rounded-md border border-gray-300 p-2"
-                        />
-                    </label>
-
-                    <button
-                        type="button"
-                        onClick={search}
-                        className="rounded-md bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700"
-                    >
-                        Search
-                    </button>
-                </div>
-
-                <div className="overflow-x-auto rounded-xl border bg-white">
-                    <table className="w-full text-left text-sm">
-                        <thead className="bg-gray-100">
-                            <tr>
-                                <th className="p-3">Date</th>
-                                <th className="p-3">Check In</th>
-                                <th className="p-3">Check Out</th>
-                                <th className="p-3">Status</th>
-                                <th className="p-3">Distance</th>
-                                <th className="p-3">Location</th>
+            <div className="card mt-5 overflow-x-auto">
+                <table className="data-table min-w-[720px]">
+                    <thead>
+                        <tr>
+                            <th className="text-left">Date</th>
+                            <th>Check In</th>
+                            <th>Check Out</th>
+                            <th>Status</th>
+                            <th>Distance</th>
+                            <th>Location</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {rows.map((row) => (
+                            <tr key={row.id}>
+                                <td className="text-left">{formatDate(row.date)}</td>
+                                <td>{formatDateTime(row.check_in_at)}</td>
+                                <td>{formatDateTime(row.check_out_at)}</td>
+                                <td>
+                                    <Badge tone={row.status === 'late' ? 'warn' : 'ok'}>{row.status}</Badge>
+                                </td>
+                                <td>
+                                    <span className="inline-flex flex-wrap items-center justify-center gap-1">
+                                        {row.check_in_distance != null ? `${Math.round(row.check_in_distance)}m` : '—'}
+                                        {row.check_in_outside && <Badge tone="gold">outside</Badge>}
+                                    </span>
+                                </td>
+                                <td>
+                                    {row.check_in_latitude != null && row.check_in_longitude != null ? (
+                                        <button
+                                            type="button"
+                                            onClick={() => setSelected(row)}
+                                            className="inline-flex items-center gap-1 text-brand-3 hover:underline"
+                                        >
+                                            <Icon name="location" size={14} /> View
+                                        </button>
+                                    ) : (
+                                        '—'
+                                    )}
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            {rows.map((row) => (
-                                <tr key={row.id} className="border-t">
-                                    <td className="p-3">{formatDate(row.date)}</td>
-                                    <td className="p-3">{formatDateTime(row.check_in_at)}</td>
-                                    <td className="p-3">{formatDateTime(row.check_out_at)}</td>
-                                    <td className="p-3 capitalize">{row.status}</td>
-                                    <td className="p-3">
-                                        {row.check_in_distance != null
-                                            ? `${Math.round(row.check_in_distance)}m`
-                                            : '—'}
-                                        {row.check_in_outside && (
-                                            <span className="ml-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
-                                                outside ⚠️
-                                            </span>
-                                        )}
-                                    </td>
-                                    <td className="p-3">
-                                        {row.check_in_latitude != null &&
-                                        row.check_in_longitude != null ? (
-                                            <a
-                                                target="_blank"
-                                                rel="noreferrer"
-                                                href={`https://www.openstreetmap.org/?mlat=${row.check_in_latitude}&mlon=${row.check_in_longitude}#map=18/${row.check_in_latitude}/${row.check_in_longitude}`}
-                                                className="text-indigo-600 hover:underline"
-                                            >
-                                                View on map
-                                            </a>
-                                        ) : (
-                                            '—'
-                                        )}
-                                    </td>
-                                </tr>
-                            ))}
-                            {rows.length === 0 && (
-                                <tr>
-                                    <td colSpan={6} className="p-5 text-center text-gray-500">
-                                        No attendance records found.
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+                        ))}
+                        {rows.length === 0 && <EmptyRow colSpan={6}>No attendance records found.</EmptyRow>}
+                    </tbody>
+                </table>
+            </div>
 
-                <div className="flex items-center gap-4">
-                    {records.prev_page_url && (
-                        <Link
-                            href={records.prev_page_url}
-                            className="rounded-md border px-3 py-2 hover:bg-gray-100"
+            <div className="mt-5">
+                <Pagination
+                    currentPage={records.current_page}
+                    lastPage={records.last_page}
+                    prevUrl={records.prev_page_url}
+                    nextUrl={records.next_page_url}
+                />
+            </div>
+
+            <Modal
+                open={selected !== null}
+                onClose={() => setSelected(null)}
+                title={selected ? `Location — ${formatDate(selected.date)}` : ''}
+            >
+                {selected && staffPosition && (
+                    <div className="space-y-3">
+                        <div className="flex flex-wrap items-center gap-4 text-xs text-muted">
+                            <span className="inline-flex items-center gap-1.5">
+                                <span className="grid h-5 w-5 place-items-center rounded-full bg-info text-[10px] text-white">🏢</span>
+                                {office.name} (office)
+                            </span>
+                            <span className="inline-flex items-center gap-1.5">
+                                <span className="grid h-5 w-5 place-items-center rounded-full bg-ok text-[10px] text-white">✓</span>
+                                Your check-in location
+                            </span>
+                        </div>
+
+                        <div className="h-[360px] overflow-hidden rounded-xl border border-line">
+                            <MapContainer center={officePosition} zoom={17} className="h-full w-full">
+                                <TileLayer
+                                    attribution='&copy; OpenStreetMap contributors'
+                                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                />
+
+                                <Circle
+                                    center={officePosition}
+                                    radius={office.radius}
+                                    pathOptions={{ color: 'green', fillColor: 'green', fillOpacity: 0.08 }}
+                                />
+
+                                <Marker position={officePosition} icon={officeIcon}>
+                                    <Popup>
+                                        <strong>{office.name}</strong>
+                                        <br />
+                                        Office (radius {office.radius}m)
+                                    </Popup>
+                                </Marker>
+
+                                {staffPosition && (
+                                    <Marker position={staffPosition} icon={checkInIcon}>
+                                        <Popup>
+                                            Your check-in
+                                            <br />
+                                            {formatDateTime(selected.check_in_at)}
+                                        </Popup>
+                                    </Marker>
+                                )}
+
+                                <FitBounds points={staffPosition ? [officePosition, staffPosition] : [officePosition]} />
+                            </MapContainer>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
+                            <div>
+                                <p className="text-xs text-muted">Check In</p>
+                                <p className="font-medium">{formatDateTime(selected.check_in_at)}</p>
+                            </div>
+                            <div>
+                                <p className="text-xs text-muted">Check Out</p>
+                                <p className="font-medium">{formatDateTime(selected.check_out_at)}</p>
+                            </div>
+                            <div>
+                                <p className="text-xs text-muted">Distance from office</p>
+                                <p className="font-medium">
+                                    {selected.check_in_distance != null
+                                        ? `${Math.round(selected.check_in_distance)}m`
+                                        : '—'}
+                                </p>
+                            </div>
+                            <div>
+                                <p className="text-xs text-muted">Status</p>
+                                <p className="font-medium capitalize">{selected.status}</p>
+                            </div>
+                        </div>
+
+                        <a
+                            target="_blank"
+                            rel="noreferrer"
+                            href={`https://www.openstreetmap.org/?mlat=${selected.check_in_latitude}&mlon=${selected.check_in_longitude}#map=18/${selected.check_in_latitude}/${selected.check_in_longitude}`}
+                            className="btn-ghost w-full"
                         >
-                            Previous
-                        </Link>
-                    )}
-                    <span className="text-sm text-gray-600">
-                        Page {records.current_page} of {records.last_page}
-                    </span>
-                    {records.next_page_url && (
-                        <Link
-                            href={records.next_page_url}
-                            className="rounded-md border px-3 py-2 hover:bg-gray-100"
-                        >
-                            Next
-                        </Link>
-                    )}
-                </div>
-            </main>
+                            <Icon name="globe" size={16} /> Open in OpenStreetMap
+                        </a>
+                    </div>
+                )}
+            </Modal>
         </AppLayout>
     );
+}
+
+function FitBounds({ points }: { points: [number, number][] }) {
+    const map = useMap();
+
+    useEffect(() => {
+        const bounds = L.latLngBounds(points);
+
+        if (points.length === 1) {
+            map.setView(points[0], 17);
+            return;
+        }
+
+        map.fitBounds(bounds, { padding: [50, 50], maxZoom: 18 });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [points.map((p) => p.join(',')).join('|')]);
+
+    return null;
 }

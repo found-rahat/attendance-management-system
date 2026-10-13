@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -37,6 +38,17 @@ class SubscriptionPlan extends Model
     public function companies(): HasMany
     {
         return $this->hasMany(Company::class);
+    }
+
+    /**
+     * The date a billing period starting at the given date ends, based on
+     * the plan's billing cycle.
+     */
+    public function periodEnd(Carbon $start): Carbon
+    {
+        return $this->billing_cycle === 'yearly'
+            ? $start->copy()->addYear()
+            : $start->copy()->addMonth();
     }
 
     public function isUnlimited(): bool

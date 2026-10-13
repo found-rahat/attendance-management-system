@@ -26,6 +26,76 @@ class User extends Authenticatable
     public const ROLE_STAFF = 'staff';
 
     /**
+     * Check if the user has a specific permission.
+     */
+    public function hasPermission(string $permission): bool
+    {
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        return $this->roleHasPermission($this->role, $permission);
+    }
+
+    /**
+     * Check if the user has any of the given permissions.
+     */
+    public function hasAnyPermission(array $permissions): bool
+    {
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        foreach ($permissions as $permission) {
+            if ($this->roleHasPermission($this->role, $permission)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if the user has all of the given permissions.
+     */
+    public function hasAllPermissions(array $permissions): bool
+    {
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        foreach ($permissions as $permission) {
+            if (! $this->roleHasPermission($this->role, $permission)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Check whether the user's role is granted the permission.
+     */
+    public function roleHasPermission(string $role, string $permission): bool
+    {
+        return in_array($permission, Permission::namesForRole($role), true);
+    }
+
+    /**
+     * All permission names granted to this user's role.
+     *
+     * @return array<int, string>
+     */
+    public function permissionNames(): array
+    {
+        if ($this->isSuperAdmin()) {
+            return Permission::query()->pluck('name')->all();
+        }
+
+        return Permission::namesForRole($this->role);
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
@@ -68,7 +138,7 @@ class User extends Authenticatable
         return match ($this->role) {
             self::ROLE_SUPER_ADMIN => route('super.dashboard'),
             self::ROLE_ADMIN => route('admin.attendance-report'),
-            default => route('attendance.index'),
+            default => route('staff.dashboard'),
         };
     }
 }

@@ -37,31 +37,24 @@ export default function AccountSuspended({
             <Head title="Account Suspended" />
 
             <section className="grid min-h-[60vh] place-items-center px-4 py-20">
-                <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm">
-                    <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-red-50 text-3xl">
+                <div className="card w-full max-w-md border-danger/40 p-8 text-center">
+                    <span className="mx-auto grid h-16 w-16 place-items-center rounded-full border border-danger/40 bg-danger/10 text-3xl">
                         ⛔
                     </span>
 
-                    <h1 className="mt-5 text-2xl font-bold text-gray-900">{title}</h1>
-                    <p className="mt-3 text-sm text-gray-600">{message}</p>
+                    <h1 className="mt-5 text-2xl font-bold">{title}</h1>
+                    <p className="mt-3 text-sm text-muted">{message}</p>
 
                     {contact_email && (
-                        <p className="mt-4 text-sm text-gray-500">
+                        <p className="mt-4 text-sm text-muted">
                             যোগাযোগ:{' '}
-                            <a
-                                href={`mailto:${contact_email}`}
-                                className="font-semibold text-indigo-600 hover:underline"
-                            >
+                            <a href={`mailto:${contact_email}`} className="font-semibold text-brand-3 hover:underline">
                                 {contact_email}
                             </a>
                         </p>
                     )}
 
-                    <button
-                        type="button"
-                        onClick={() => router.post('/logout')}
-                        className="mt-8 w-full rounded-lg bg-gray-900 px-5 py-3 font-semibold text-white hover:bg-gray-700"
-                    >
+                    <button type="button" onClick={() => router.post('/logout')} className="btn-ghost mt-8 w-full py-3">
                         Logout
                     </button>
                 </div>

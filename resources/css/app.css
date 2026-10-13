@@ -5,6 +5,241 @@
 @source '../../storage/framework/views/*.php';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'Inter', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+        'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+
+    --color-bg: #050a24;
+    --color-panel: #0a1030;
+    --color-panel-2: #0d1438;
+    --color-panel-3: #090e2c;
+    --color-panel-deep: #080d2b;
+    --color-line: #1a2150;
+    --color-line-2: #121846;
+    --color-ink: #e8ebff;
+    --color-ink-soft: #d6dafc;
+    --color-muted: #9aa3d1;
+
+    --color-brand: #8b2cf5;
+    --color-brand-2: #6a1fd0;
+    --color-brand-3: #a24bff;
+    --color-brand-ink: #8a5cf0;
+    --color-brand-soft: #e0c8ff;
+    --color-cy: #22d3ee;
+    --color-ok: #22c55e;
+    --color-ok-soft: #b9ffd2;
+    --color-ok-bg: #052315;
+    --color-warn: #f97316;
+    --color-warn-soft: #ffd9a3;
+    --color-warn-bg: #2e1b05;
+    --color-danger: #f43f5e;
+    --color-danger-soft: #ffc2cf;
+    --color-danger-bg: #2a0a1a;
+    --color-gold: #f5a524;
+    --color-info: #3b82f6;
+    --color-info-soft: #b9d8ff;
+    --color-info-bg: #071a3e;
+
+    --color-aside-top: #070c2b;
+    --color-nav: #080d2a;
+    --color-hover: #0f1642;
+    --color-active-from: #4a1a9c;
+    --color-active-to: #5b1fc4;
+    --color-avatar-from: #2e2a8a;
+    --color-avatar-to: #171a5e;
+
+    --color-stat-purple: #1a1050;
+    --color-stat-blue: #0b2a4a;
+    --color-stat-orange: #3a1608;
+    --color-stat-gold: #33250a;
+    --color-stat-cyan: #08303a;
+    --color-stat-green: #062a18;
+
+    --color-chart-grid: #1e2660;
+    --color-chart-axis: #c8cdf0;
+    --color-chart-line: #a24bff;
+    --color-chart-fill: #9a2ff5;
+    --color-chart-dot: #b46cff;
+}
+
+@layer base {
+    html,
+    body {
+        background-color: var(--color-bg);
+        color: var(--color-ink);
+    }
+
+    html {
+        color-scheme: dark;
+    }
+
+    body {
+        background-image: radial-gradient(1200px 600px at 70% -10%, #10164a 0%, var(--color-bg) 60%);
+        background-attachment: fixed;
+    }
+
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: #070c2b;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #232a63;
+        border-radius: 8px;
+    }
+
+    /* Leaflet panes/controls default to z-index 400–1000, which would rise
+       above the app chrome (sidebar z-50, top bar z-30). Giving the map
+       container its own stacking context keeps the map contained. */
+    .leaflet-container {
+        position: relative;
+        z-index: 0;
+        isolation: isolate;
+        font-family: inherit;
+    }
+
+    /* ---- Light theme ---------------------------------------------------- */
+    html.light {
+        color-scheme: light;
+
+        --color-bg: #eef1fb;
+        --color-panel: #ffffff;
+        --color-panel-2: #f7f8fd;
+        --color-panel-3: #f1f4fb;
+        --color-panel-deep: #ffffff;
+        --color-line: #d8def0;
+        --color-line-2: #e7ebf6;
+        --color-ink: #1a2038;
+        --color-ink-soft: #3a4262;
+        --color-muted: #6b7394;
+
+        --color-brand-ink: #6d28d9;
+        --color-brand-soft: #6b21a8;
+
+        --color-ok-soft: #15803d;
+        --color-ok-bg: #dcfce7;
+        --color-warn-soft: #b45309;
+        --color-warn-bg: #fef3c7;
+        --color-danger-soft: #b91c1c;
+        --color-danger-bg: #ffe4e6;
+        --color-info-soft: #1d4ed8;
+        --color-info-bg: #dbeafe;
+
+        --color-aside-top: #ffffff;
+        --color-nav: #ffffff;
+        --color-hover: #eef1fb;
+        --color-active-from: #7c3aed;
+        --color-active-to: #8b2cf5;
+        --color-avatar-from: #8b5cf6;
+        --color-avatar-to: #6d28d9;
+
+        --color-stat-purple: #ede9fe;
+        --color-stat-blue: #dbeafe;
+        --color-stat-orange: #ffedd5;
+        --color-stat-gold: #fef3c7;
+        --color-stat-cyan: #cffafe;
+        --color-stat-green: #dcfce7;
+
+        --color-chart-grid: #e2e6f4;
+        --color-chart-axis: #6b7394;
+    }
+
+    html.light body {
+        background-image: radial-gradient(1200px 600px at 70% -10%, #ffffff 0%, var(--color-bg) 60%);
+    }
+
+    html.light ::-webkit-scrollbar-track {
+        background: #eef1fb;
+    }
+
+    html.light ::-webkit-scrollbar-thumb {
+        background: #c9d0e6;
+    }
+}
+
+@layer components {
+    .card {
+        @apply rounded-2xl border border-line bg-linear-to-b from-panel to-panel-deep;
+    }
+
+    .panel {
+        @apply rounded-2xl border border-line bg-panel;
+    }
+
+    .btn-primary {
+        @apply inline-flex items-center justify-center gap-2 rounded-xl border border-brand-3/70 bg-linear-to-r from-brand-2 to-brand px-5 py-2.5 text-sm font-semibold text-white shadow-[0_0_20px_rgba(139,44,245,0.45)] transition hover:brightness-110 disabled:opacity-50;
+    }
+
+    .btn-ghost {
+        @apply inline-flex items-center justify-center gap-2 rounded-xl border border-line bg-panel-2 px-4 py-2.5 text-sm font-medium text-ink-soft transition hover:border-brand/60 hover:text-ink disabled:opacity-50;
+    }
+
+    .btn-danger {
+        @apply inline-flex items-center justify-center gap-2 rounded-xl border border-danger/50 bg-danger/10 px-4 py-2.5 text-sm font-medium text-danger transition hover:bg-danger/20 disabled:opacity-50;
+    }
+
+    .logo-chip {
+        @apply inline-block px-4 py-2 text-2xl font-black italic tracking-tight;
+        border-radius: 22px;
+        background: linear-gradient(135deg, #1c1f55, #2a1b6e);
+        box-shadow:
+            0 0 0 3px #ff4fa0,
+            0 0 0 6px #ff9a3c33,
+            0 0 22px #8b2cf588;
+    }
+
+    .logo-chip b {
+        color: #ff8a3c;
+    }
+
+    .field {
+        @apply flex h-10 items-center gap-2 rounded-lg border border-line-2 bg-panel-3 px-3 text-sm text-ink transition focus-within:border-brand;
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+        @apply w-full min-w-0 bg-transparent text-sm text-ink outline-none placeholder:text-muted;
+    }
+
+    .field select option {
+        @apply bg-panel text-ink;
+    }
+
+    .label {
+        @apply mb-2 block text-xs font-medium text-ink-soft;
+    }
+
+    .input {
+        @apply w-full rounded-lg border border-line-2 bg-panel-3 px-3 py-2 text-sm text-ink outline-none transition focus:border-brand placeholder:text-muted;
+    }
+
+    .tag {
+        @apply inline-flex items-center gap-1 rounded-lg border border-line bg-panel-3 px-2.5 py-1 text-xs font-medium;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 720px;
+    }
+
+    .data-table th {
+        @apply border-b border-line px-3 py-4 text-center text-sm font-normal text-cy;
+    }
+
+    .data-table td {
+        @apply border-b border-line-2 px-3 py-3 text-center text-sm;
+    }
+
+    .data-table tbody tr:last-child td {
+        @apply border-b-0;
+    }
+
+    .data-table tbody tr:hover td {
+        @apply bg-ink/5;
+    }
 }

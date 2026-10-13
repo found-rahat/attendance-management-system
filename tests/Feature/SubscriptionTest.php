@@ -136,6 +136,38 @@ class SubscriptionTest extends TestCase
         ]);
     }
 
+    public function test_assigning_plan_auto_sets_billing_period_end_date(): void
+    {
+        $super = $this->superAdmin();
+        $monthly = $this->plan(['billing_cycle' => 'monthly']);
+        $yearly = $this->plan(['name' => 'Annual', 'slug' => 'annual', 'billing_cycle' => 'yearly']);
+        $company = $this->company();
+
+        $this->actingAs($super)
+            ->patch("/super/companies/{$company->id}/subscription", [
+                'subscription_plan_id' => $monthly->id,
+                'subscription_status' => 'active',
+            ])
+            ->assertRedirect();
+
+        $company->refresh();
+        $this->assertSame(now()->toDateString(), $company->subscription_starts_at->toDateString());
+        $this->assertSame(now()->addMonth()->toDateString(), $company->subscription_ends_at->toDateString());
+        $this->assertTrue($company->isSubscriptionActive());
+
+        $this->actingAs($super)
+            ->patch("/super/companies/{$company->id}/subscription", [
+                'subscription_plan_id' => $yearly->id,
+                'subscription_status' => 'active',
+            ])
+            ->assertRedirect();
+
+        $this->assertSame(
+            now()->addYear()->toDateString(),
+            $company->refresh()->subscription_ends_at->toDateString(),
+        );
+    }
+
     public function test_super_admin_can_update_site_settings(): void
     {
         $super = $this->superAdmin();

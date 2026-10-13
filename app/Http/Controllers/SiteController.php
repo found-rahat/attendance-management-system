@@ -6,19 +6,14 @@ use App\Models\Company;
 use App\Models\SiteContent;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class SiteController extends Controller
 {
-    public function home(): Response|RedirectResponse
+    public function home(): Response
     {
-        if (auth()->check()) {
-            return redirect(auth()->user()->homeRoute());
-        }
-
         return Inertia::render('Landing', [
             'plans' => $this->plans(),
             'site' => SiteContent::landing(),

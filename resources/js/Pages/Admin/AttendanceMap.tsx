@@ -2,6 +2,8 @@ import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 import { Circle, MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
 import AppLayout from '../../Layouts/AppLayout';
+import { Icon } from '../../components/Icons';
+import { PageHeader } from '../../components/ui';
 import { checkOutIcon, checkInIcon, officeIcon } from '../../lib/leaflet';
 import { formatDateTime } from '../../lib/datetime';
 
@@ -40,93 +42,75 @@ export default function AttendanceMap({ date, rows, office }: Props) {
         <AppLayout>
             <Head title="Attendance Map" />
 
-            <main className="mx-auto max-w-6xl space-y-4 p-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                    <h1 className="text-2xl font-bold">
-                        Attendance Locations — {date}
-                    </h1>
+            <PageHeader icon="track" title={`Attendance Map — ${date}`} subtitle={`${rows.length} check-in location(s) on this date.`}>
+                <input
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    className="input w-auto"
+                />
+                <button type="button" onClick={changeDate} className="btn-primary">
+                    <Icon name="search" size={18} /> Show
+                </button>
+                <Link href="/admin/attendance-report" className="btn-ghost">
+                    <Icon name="calendar" size={18} /> Report
+                </Link>
+            </PageHeader>
 
-                    <div className="flex items-center gap-2">
-                        <input
-                            type="date"
-                            value={selectedDate}
-                            onChange={(e) => setSelectedDate(e.target.value)}
-                            className="rounded-md border border-gray-300 px-3 py-2 text-sm"
-                        />
-                        <button
-                            type="button"
-                            onClick={changeDate}
-                            className="rounded-md bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700"
-                        >
-                            Show
-                        </button>
-                        <Link
-                            href="/admin/attendance-report"
-                            className="rounded-md border px-4 py-2 text-sm hover:bg-gray-100"
-                        >
-                            Report
-                        </Link>
-                    </div>
-                </div>
+            <p className="mb-4 flex flex-wrap items-center gap-4 text-xs text-muted">
+                <span className="inline-flex items-center gap-1">
+                    <span className="h-3 w-3 rounded-full bg-ok" /> Office
+                </span>
+                <span className="inline-flex items-center gap-1">
+                    <span className="h-3 w-3 rounded-full bg-info" /> Check-in
+                </span>
+                <span className="inline-flex items-center gap-1">
+                    <span className="h-3 w-3 rounded-full bg-danger" /> Check-out
+                </span>
+            </p>
 
-                <p className="text-sm text-gray-600">
-                    {rows.length} check-in location(s) on this date. Green marker = office,
-                    ✓ = check-in, ✕ = check-out.
-                </p>
+            <div className="card h-[600px] overflow-hidden p-0">
+                <MapContainer center={center} zoom={16} className="h-full w-full">
+                    <TileLayer
+                        attribution='&copy; OpenStreetMap contributors'
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    />
 
-                <div className="h-[600px] overflow-hidden rounded-xl border bg-white">
-                    <MapContainer center={center} zoom={16} className="h-full w-full">
-                        <TileLayer
-                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                        />
+                    <Circle
+                        center={center}
+                        radius={office.radius}
+                        pathOptions={{ color: 'green', fillColor: 'green', fillOpacity: 0.08 }}
+                    />
 
-                        <Circle
-                            center={center}
-                            radius={office.radius}
-                            pathOptions={{ color: 'green', fillColor: 'green', fillOpacity: 0.08 }}
-                        />
+                    <Marker position={center} icon={officeIcon}>
+                        <Popup>{office.name}</Popup>
+                    </Marker>
 
-                        <Marker position={center} icon={officeIcon}>
-                            <Popup>{office.name}</Popup>
-                        </Marker>
+                    {rows.map((row) => (
+                        <div key={row.id}>
+                            <Marker position={[row.check_in_latitude, row.check_in_longitude]} icon={checkInIcon}>
+                                <Popup>
+                                    <strong>{row.staff?.name ?? 'Deleted staff'}</strong>
+                                    <br />
+                                    Check In: {formatDateTime(row.check_in_at)}
+                                    <br />
+                                    Status: {row.status}
+                                </Popup>
+                            </Marker>
 
-                        {rows.map((row) => (
-                            <div key={row.id}>
-                                <Marker
-                                    position={[row.check_in_latitude, row.check_in_longitude]}
-                                    icon={checkInIcon}
-                                >
+                            {row.check_out_latitude != null && row.check_out_longitude != null && (
+                                <Marker position={[row.check_out_latitude, row.check_out_longitude]} icon={checkOutIcon}>
                                     <Popup>
-                                        <strong>{row.staff?.name ?? 'Deleted staff'}</strong>
+                                        {row.staff?.name ?? 'Staff'} — Check Out
                                         <br />
-                                        Check In: {formatDateTime(row.check_in_at)}
-                                        <br />
-                                        Status: {row.status}
+                                        {formatDateTime(row.check_out_at)}
                                     </Popup>
                                 </Marker>
-
-                                {row.check_out_latitude != null &&
-                                    row.check_out_longitude != null && (
-                                        <Marker
-                                            position={[
-                                                row.check_out_latitude,
-                                                row.check_out_longitude,
-                                            ]}
-                                            icon={checkOutIcon}
-                                        >
-                                            <Popup>
-                                                {row.staff?.name ?? 'Staff'} — Check Out
-                                                <br />
-                                                {formatDateTime(row.check_out_at)}
-                                            </Popup>
-                                        </Marker>
-                                    )}
-                            </div>
-                        ))}
-                    </MapContainer>
-                </div>
-            </main>
+                            )}
+                        </div>
+                    ))}
+                </MapContainer>
+            </div>
         </AppLayout>
     );
 }

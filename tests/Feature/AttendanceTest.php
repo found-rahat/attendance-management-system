@@ -265,6 +265,83 @@ class AttendanceTest extends TestCase
             );
     }
 
+    public function test_admin_can_edit_attendance_time_and_status(): void
+    {
+        $record = StaffAttendance::create([
+            'company_id' => $this->company->id,
+            'staff_id' => $this->staff->id,
+            'date' => '2026-01-15',
+            'check_in_at' => Carbon::parse('2026-01-15 03:00:00', 'UTC'),
+            'check_out_at' => Carbon::parse('2026-01-15 08:00:00', 'UTC'),
+            'status' => 'present',
+        ]);
+
+        $this->actingAs($this->admin())
+            ->put("/admin/attendance/{$record->id}", [
+                'check_in_at' => '2026-01-15T09:30',
+                'check_out_at' => '2026-01-15T18:00',
+                'status' => 'late',
+            ])
+            ->assertRedirect();
+
+        $record->refresh();
+        $this->assertSame('09:30', $record->check_in_at->setTimezone('Asia/Dhaka')->format('H:i'));
+        $this->assertSame('18:00', $record->check_out_at->setTimezone('Asia/Dhaka')->format('H:i'));
+        $this->assertSame('late', $record->status);
+    }
+
+    public function test_admin_cannot_edit_other_companys_attendance(): void
+    {
+        $other = Company::create([
+            'name' => 'Other Co',
+            'office_name' => 'Other Office',
+            'latitude' => 1.0,
+            'longitude' => 1.0,
+            'radius_meters' => 100,
+            'late_after' => '09:15',
+            'timezone' => 'Asia/Dhaka',
+            'max_accuracy_meters' => 100,
+        ]);
+
+        $otherStaff = User::factory()->create([
+            'role' => 'staff',
+            'company_id' => $other->id,
+        ]);
+
+        $record = StaffAttendance::create([
+            'company_id' => $other->id,
+            'staff_id' => $otherStaff->id,
+            'date' => '2026-01-15',
+            'status' => 'present',
+        ]);
+
+        $this->actingAs($this->admin())
+            ->put("/admin/attendance/{$record->id}", [
+                'check_in_at' => '2026-01-15T09:30',
+                'check_out_at' => '2026-01-15T18:00',
+                'status' => 'present',
+            ])
+            ->assertForbidden();
+    }
+
+    public function test_admin_cannot_set_check_out_before_check_in(): void
+    {
+        $record = StaffAttendance::create([
+            'company_id' => $this->company->id,
+            'staff_id' => $this->staff->id,
+            'date' => '2026-01-15',
+            'status' => 'present',
+        ]);
+
+        $this->actingAs($this->admin())
+            ->put("/admin/attendance/{$record->id}", [
+                'check_in_at' => '2026-01-15T10:00',
+                'check_out_at' => '2026-01-15T09:00',
+                'status' => 'present',
+            ])
+            ->assertSessionHasErrors('check_out_at');
+    }
+
     public function test_super_admin_can_create_a_company_with_admin(): void
     {
         $super = User::factory()->create(['role' => 'super_admin', 'company_id' => null]);

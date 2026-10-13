@@ -30,6 +30,7 @@ export type User = {
     is_super_admin: boolean;
     is_admin: boolean;
     is_staff: boolean;
+    permissions: string[];
     company: Company | null;
 };
 
@@ -67,6 +68,9 @@ export type SiteFaq = {
 
 export type SiteSettings = {
     brand_name: string;
+    logo_dark?: string | null;
+    logo_light?: string | null;
+    favicon?: string | null;
     hero_title: string;
     hero_subtitle: string;
     contact_email: string;
@@ -79,10 +83,19 @@ export type SiteSettings = {
     faqs: SiteFaq[];
 };
 
+export type Branding = {
+    name: string;
+    logo_dark: string | null;
+    logo_light: string | null;
+    favicon: string | null;
+};
+
 declare module '@inertiajs/core' {
     interface PageProps {
         auth: Auth;
         flash: Flash;
+        theme: 'light' | 'dark';
+        branding: Branding;
         errors?: Record<string, string>;
     }
 }

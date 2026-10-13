@@ -8,6 +8,7 @@ use App\Models\StaffAttendance;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class AttendanceReportController extends Controller
@@ -92,6 +93,40 @@ class AttendanceReportController extends Controller
                 ->get(),
             'office' => $company->office(),
         ]);
+    }
+
+    public function update(Request $request, StaffAttendance $attendance)
+    {
+        $company = $this->company($request);
+
+        abort_unless($attendance->company_id === $company->id, 403);
+
+        $data = $request->validate([
+            'check_in_at' => ['nullable', 'date_format:Y-m-d\TH:i'],
+            'check_out_at' => ['nullable', 'date_format:Y-m-d\TH:i'],
+            'status' => ['required', 'in:present,late'],
+        ]);
+
+        $checkIn = $data['check_in_at']
+            ? Carbon::parse($data['check_in_at'], $company->timezone)->setTimezone('UTC')
+            : null;
+        $checkOut = $data['check_out_at']
+            ? Carbon::parse($data['check_out_at'], $company->timezone)->setTimezone('UTC')
+            : null;
+
+        if ($checkIn && $checkOut && $checkOut->lt($checkIn)) {
+            throw ValidationException::withMessages([
+                'check_out_at' => 'Check out সময় check in-এর পরে হতে হবে।',
+            ]);
+        }
+
+        $attendance->update([
+            'check_in_at' => $checkIn,
+            'check_out_at' => $checkOut,
+            'status' => $data['status'],
+        ]);
+
+        return back()->with('message', 'Attendance updated.');
     }
 
     public function map(Request $request)

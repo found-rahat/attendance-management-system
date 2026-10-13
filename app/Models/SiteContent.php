@@ -10,6 +10,9 @@ use Illuminate\Database\Eloquent\Model;
  */
 #[Fillable([
     'brand_name',
+    'logo_dark',
+    'logo_light',
+    'favicon',
     'hero_title',
     'hero_subtitle',
     'contact_email',
@@ -28,6 +31,9 @@ class SiteContent extends Model
      */
     public const COLUMNS = [
         'brand_name',
+        'logo_dark',
+        'logo_light',
+        'favicon',
         'hero_title',
         'hero_subtitle',
         'contact_email',
@@ -37,6 +43,13 @@ class SiteContent extends Model
         'cta_subtext',
         'footer_text',
     ];
+
+    /**
+     * Columns that hold an uploaded logo file rather than plain text.
+     *
+     * @var array<int, string>
+     */
+    public const LOGO_COLUMNS = ['logo_dark', 'logo_light', 'favicon'];
 
     /**
      * The single content row, created on first access.

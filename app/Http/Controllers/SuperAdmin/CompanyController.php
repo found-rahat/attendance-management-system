@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Company;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -58,7 +59,12 @@ class CompanyController extends Controller
             'admin_password' => ['required', 'string', Password::min(6)],
         ]);
 
-        DB::transaction(function () use ($data) {
+        $plan = isset($data['subscription_plan_id'])
+            ? SubscriptionPlan::find($data['subscription_plan_id'])
+            : null;
+        $startsAt = now()->startOfDay();
+
+        DB::transaction(function () use ($data, $plan, $startsAt) {
             $company = Company::create([
                 'name' => $data['name'],
                 'office_name' => $data['office_name'],
@@ -71,7 +77,8 @@ class CompanyController extends Controller
                 'is_active' => true,
                 'subscription_plan_id' => $data['subscription_plan_id'] ?? null,
                 'subscription_status' => 'active',
-                'subscription_starts_at' => now()->toDateString(),
+                'subscription_starts_at' => $startsAt->toDateString(),
+                'subscription_ends_at' => $plan?->periodEnd($startsAt)->toDateString(),
             ]);
 
             User::create([
@@ -94,6 +101,19 @@ class CompanyController extends Controller
             'subscription_starts_at' => ['nullable', 'date'],
             'subscription_ends_at' => ['nullable', 'date', 'after_or_equal:subscription_starts_at'],
         ]);
+
+        // Assigning a plan starts a fresh billing period: unless an explicit
+        // end date is supplied, derive it from the plan's billing cycle so a
+        // monthly plan automatically expires after one month.
+        if (! empty($data['subscription_plan_id']) && empty($data['subscription_ends_at'])) {
+            $plan = SubscriptionPlan::find($data['subscription_plan_id']);
+            $startsAt = ! empty($data['subscription_starts_at'])
+                ? Carbon::parse($data['subscription_starts_at'])->startOfDay()
+                : now()->startOfDay();
+
+            $data['subscription_starts_at'] = $startsAt->toDateString();
+            $data['subscription_ends_at'] = $plan?->periodEnd($startsAt)->toDateString();
+        }
 
         $company->update($data);
 

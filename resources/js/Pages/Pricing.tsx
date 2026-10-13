@@ -16,25 +16,22 @@ export default function Pricing({ plans, site, stats }: Props) {
         <PublicLayout site={site}>
             <Head title="Pricing" />
 
-            <section className="bg-gray-50 py-16">
+            <section className="py-16">
                 <div className="mx-auto max-w-6xl px-4 text-center">
-                    <span className="inline-block rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-700">
+                    <span className="inline-block rounded-lg border border-brand/40 bg-brand/15 px-3 py-1 text-xs font-semibold text-brand-3">
                         Pricing
                     </span>
-                    <h1 className="mt-4 text-4xl font-extrabold text-gray-900">
-                        আপনার team-এর জন্য সঠিক plan
-                    </h1>
-                    <p className="mx-auto mt-4 max-w-2xl text-gray-600">
-                        Employee সংখ্যা অনুযায়ী সহজ package। কোনো hidden cost নেই —
-                        যতজন staff, ততটুকু plan।
+                    <h1 className="mt-4 text-4xl font-extrabold">আপনার team-এর জন্য সঠিক plan</h1>
+                    <p className="mx-auto mt-4 max-w-2xl text-muted">
+                        Employee সংখ্যা অনুযায়ী সহজ package। কোনো hidden cost নেই — যতজন staff, ততটুকু plan।
                     </p>
-                    <p className="mt-4 text-sm text-gray-500">
+                    <p className="mt-4 text-sm text-muted">
                         {stats.companies} company ও {stats.staff} staff ইতিমধ্যে ব্যবহার করছে
                     </p>
                 </div>
             </section>
 
-            <section className="py-16">
+            <section className="pb-16">
                 <div className="mx-auto max-w-6xl px-4">
                     {plans.length > 0 ? (
                         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -43,67 +40,51 @@ export default function Pricing({ plans, site, stats }: Props) {
                             ))}
                         </div>
                     ) : (
-                        <p className="text-center text-gray-500">Pricing শীঘ্রই আসছে।</p>
+                        <p className="text-center text-muted">Pricing শীঘ্রই আসছে।</p>
                     )}
                 </div>
             </section>
 
             {plans.length > 0 && (
-                <section className="border-t border-gray-100 py-16">
+                <section className="border-t border-line py-16">
                     <div className="mx-auto max-w-6xl px-4">
-                        <h2 className="text-center text-2xl font-bold text-gray-900">
-                            Plan comparison
-                        </h2>
+                        <h2 className="text-center text-2xl font-bold">Plan comparison</h2>
 
-                        <div className="mt-10 overflow-x-auto rounded-2xl border border-gray-200 bg-white">
-                            <table className="w-full min-w-[640px] text-left text-sm">
-                                <thead className="bg-gray-50">
+                        <div className="card mt-10 overflow-x-auto p-0">
+                            <table className="data-table min-w-[640px]">
+                                <thead>
                                     <tr>
-                                        <th className="p-4 font-semibold text-gray-700">
-                                            Feature
-                                        </th>
+                                        <th className="text-left">Feature</th>
                                         {plans.map((plan) => (
-                                            <th
-                                                key={plan.id}
-                                                className="p-4 text-center font-semibold text-gray-700"
-                                            >
-                                                {plan.name}
-                                            </th>
+                                            <th key={plan.id}>{plan.name}</th>
                                         ))}
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr className="border-t">
-                                        <td className="p-4 text-gray-600">Monthly price</td>
+                                    <tr>
+                                        <td className="text-left text-muted">Monthly price</td>
                                         {plans.map((plan) => (
-                                            <td
-                                                key={plan.id}
-                                                className="p-4 text-center font-bold text-gray-900"
-                                            >
+                                            <td key={plan.id} className="font-bold">
                                                 {formatPrice(plan.price)}
                                             </td>
                                         ))}
                                     </tr>
-                                    <tr className="border-t">
-                                        <td className="p-4 text-gray-600">Staff limit</td>
+                                    <tr>
+                                        <td className="text-left text-muted">Staff limit</td>
                                         {plans.map((plan) => (
-                                            <td key={plan.id} className="p-4 text-center">
-                                                {staffLimitLabel(plan.staff_limit)}
-                                            </td>
+                                            <td key={plan.id}>{staffLimitLabel(plan.staff_limit)}</td>
                                         ))}
                                     </tr>
 
                                     {featureRows(plans).map((row) => (
-                                        <tr key={row} className="border-t">
-                                            <td className="p-4 text-gray-600">{row}</td>
+                                        <tr key={row}>
+                                            <td className="text-left text-muted">{row}</td>
                                             {plans.map((plan) => (
-                                                <td key={plan.id} className="p-4 text-center">
+                                                <td key={plan.id}>
                                                     {(plan.features ?? []).includes(row) ? (
-                                                        <span className="text-emerald-500">
-                                                            ✓
-                                                        </span>
+                                                        <span className="text-ok">✓</span>
                                                     ) : (
-                                                        <span className="text-gray-300">—</span>
+                                                        <span className="text-muted">—</span>
                                                     )}
                                                 </td>
                                             ))}
@@ -116,29 +97,21 @@ export default function Pricing({ plans, site, stats }: Props) {
                 </section>
             )}
 
-            <section className="bg-gray-50 py-16">
+            <section className="border-t border-line py-16">
                 <div className="mx-auto max-w-3xl px-4">
-                    <h2 className="text-center text-2xl font-bold text-gray-900">
-                        সাধারণ প্রশ্ন (FAQ)
-                    </h2>
+                    <h2 className="text-center text-2xl font-bold">সাধারণ প্রশ্ন (FAQ)</h2>
 
                     <div className="mt-8 space-y-4">
                         {faqs.map((faq, index) => (
-                            <div
-                                key={index}
-                                className="rounded-xl border border-gray-200 bg-white p-5"
-                            >
-                                <p className="font-semibold text-gray-900">{faq.q}</p>
-                                <p className="mt-1 text-sm text-gray-600">{faq.a}</p>
+                            <div key={index} className="card p-5">
+                                <p className="font-semibold">{faq.q}</p>
+                                <p className="mt-1 text-sm text-muted">{faq.a}</p>
                             </div>
                         ))}
                     </div>
 
                     <div className="mt-10 text-center">
-                        <Link
-                            href="/login"
-                            className="rounded-lg bg-indigo-600 px-6 py-3 font-semibold text-white hover:bg-indigo-700"
-                        >
+                        <Link href="/login" className="btn-primary px-6 py-3">
                             Login করে শুরু করুন
                         </Link>
                     </div>

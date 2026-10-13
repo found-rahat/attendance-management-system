@@ -1,5 +1,8 @@
 import { Head, Link } from '@inertiajs/react';
 import AppLayout from '../../Layouts/AppLayout';
+import { Icon } from '../../components/Icons';
+import { Badge, EmptyRow, PageHeader, StatCard } from '../../components/ui';
+import TrendChart from '../../components/TrendChart';
 
 type Company = {
     id: number;
@@ -19,89 +22,84 @@ type Props = {
         staff: number;
         attendance_today: number;
     };
+    trend: { label: string; value: number }[];
     companies: Company[];
 };
 
-const cards: { key: keyof Props['stats']; label: string; icon: string }[] = [
-    { key: 'companies', label: 'Total Companies', icon: '🏢' },
-    { key: 'active_companies', label: 'Active', icon: '✅' },
-    { key: 'admins', label: 'Company Admins', icon: '🧑‍💼' },
-    { key: 'staff', label: 'Total Staff', icon: '👥' },
-    { key: 'attendance_today', label: 'Check-ins Today', icon: '📍' },
-];
+export default function SuperAdminDashboard({ stats, trend, companies }: Props) {
+    const peak = Math.max(1, ...trend.map((point) => point.value));
 
-export default function SuperAdminDashboard({ stats, companies }: Props) {
     return (
         <AppLayout>
-            <Head title="Super Admin Dashboard" />
+            <Head title="Platform Dashboard" />
 
-            <main className="mx-auto max-w-6xl space-y-5 p-4">
-                <h1 className="text-2xl font-bold">Platform Overview</h1>
+            <PageHeader
+                icon="dashboard"
+                title="Platform Overview"
+                subtitle="Monitor every company, admin and staff account in one place."
+            >
+                <Link href="/super/companies" className="btn-primary">
+                    <Icon name="building" size={18} />
+                    Manage companies
+                </Link>
+            </PageHeader>
 
-                <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
-                    {cards.map((card) => (
-                        <div key={card.key} className="rounded-xl border bg-white p-4 shadow-sm">
-                            <p className="text-xs text-gray-500">
-                                <span className="mr-1">{card.icon}</span>
-                                {card.label}
-                            </p>
-                            <p className="mt-1 text-2xl font-bold">{stats[card.key]}</p>
-                        </div>
-                    ))}
-                </div>
+            <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+                <StatCard tone="purple" icon="building" label="Total Companies" value={stats.companies} sub="All tenants" />
+                <StatCard tone="green" icon="check" label="Active" value={stats.active_companies} sub="Enabled tenants" />
+                <StatCard tone="blue" icon="admin" label="Company Admins" value={stats.admins} sub="Office managers" />
+                <StatCard tone="cyan" icon="users" label="Total Staff" value={stats.staff} sub="Across companies" />
+                <StatCard tone="gold" icon="location" label="Check-ins Today" value={stats.attendance_today} sub="Recorded today" />
+            </section>
 
-                <div className="rounded-xl border bg-white shadow-sm">
-                    <div className="flex items-center justify-between border-b p-4">
-                        <h2 className="font-semibold">Recent companies</h2>
-                        <Link
-                            href="/super/companies"
-                            className="text-sm font-medium text-indigo-600 hover:underline"
-                        >
+            <section className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-[1.6fr_1fr]">
+                <div className="card overflow-hidden">
+                    <header className="flex items-center gap-3 border-b border-line px-6 py-4">
+                        <Icon name="building" size={20} className="text-brand-3" />
+                        <span className="font-medium">Recent companies</span>
+                        <Link href="/super/companies" className="ml-auto text-sm text-brand-3 hover:underline">
                             Manage all →
                         </Link>
-                    </div>
-
-                    <table className="w-full text-left text-sm">
-                        <thead className="bg-gray-100">
-                            <tr>
-                                <th className="p-3">Company</th>
-                                <th className="p-3">Office</th>
-                                <th className="p-3">Admins</th>
-                                <th className="p-3">Staff</th>
-                                <th className="p-3">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {companies.map((company) => (
-                                <tr key={company.id} className="border-t">
-                                    <td className="p-3 font-medium">{company.name}</td>
-                                    <td className="p-3 text-gray-600">{company.office_name}</td>
-                                    <td className="p-3">{company.admins_count}</td>
-                                    <td className="p-3">{company.staff_count}</td>
-                                    <td className="p-3">
-                                        <span
-                                            className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                                                company.is_active
-                                                    ? 'bg-green-100 text-green-700'
-                                                    : 'bg-gray-200 text-gray-600'
-                                            }`}
-                                        >
-                                            {company.is_active ? 'active' : 'inactive'}
-                                        </span>
-                                    </td>
-                                </tr>
-                            ))}
-                            {companies.length === 0 && (
+                    </header>
+                    <div className="overflow-x-auto">
+                        <table className="data-table">
+                            <thead>
                                 <tr>
-                                    <td colSpan={5} className="p-5 text-center text-gray-500">
-                                        No companies yet.
-                                    </td>
+                                    <th>Company</th>
+                                    <th>Office</th>
+                                    <th>Admins</th>
+                                    <th>Staff</th>
+                                    <th>Status</th>
                                 </tr>
-                            )}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {companies.map((company) => (
+                                    <tr key={company.id}>
+                                        <td className="text-left font-medium">{company.name}</td>
+                                        <td className="text-left text-muted">{company.office_name}</td>
+                                        <td>{company.admins_count}</td>
+                                        <td>{company.staff_count}</td>
+                                        <td>
+                                            <Badge tone={company.is_active ? 'ok' : 'neutral'}>
+                                                {company.is_active ? 'active' : 'inactive'}
+                                            </Badge>
+                                        </td>
+                                    </tr>
+                                ))}
+                                {companies.length === 0 && <EmptyRow colSpan={5}>No companies yet.</EmptyRow>}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            </main>
+
+                <div className="card p-5">
+                    <div className="mb-3 flex items-center justify-between">
+                        <span className="text-sm font-medium">Check-in trend</span>
+                        <span className="text-xs text-muted">Last 7 days</span>
+                    </div>
+                    <TrendChart data={trend} max={peak} suffix="" />
+                </div>
+            </section>
         </AppLayout>
     );
 }

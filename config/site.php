@@ -10,7 +10,7 @@ return [
     | while `landing_features` and `landing_faqs` supply the curated lists.
     */
     'defaults' => [
-        'brand_name' => 'Attendly',
+        'brand_name' => '',
         'hero_title' => 'অফিসের উপস্থিতি, location-verified',
         'hero_subtitle' => 'Staff শুধু অফিসের ভেতরে থেকেই Check In / Check Out করতে পারবে। Real-time map, automated report ও multi-company support — সব একটাই system-এ।',
         'contact_email' => 'hello@attendly.app',

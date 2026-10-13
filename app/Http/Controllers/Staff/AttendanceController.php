@@ -195,6 +195,8 @@ class AttendanceController extends Controller
 
     public function history(Request $request)
     {
+        $company = $this->company($request);
+
         $data = $request->validate([
             'from' => ['nullable', 'date'],
             'to' => ['nullable', 'date', 'after_or_equal:from'],
@@ -202,6 +204,7 @@ class AttendanceController extends Controller
         ]);
 
         return Inertia::render('Staff/History', [
+            'office' => $company->office(),
             'records' => StaffAttendance::query()
                 ->where('staff_id', $request->user()->id)
                 ->when($data['from'] ?? null, fn ($q, $from) =>
