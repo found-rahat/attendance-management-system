@@ -125,9 +125,11 @@ footer.ft{padding:56px 0 22px;margin-top:40px;text-align:left;background:linear-
 </style>
 </head>
 <body>
+@php
+    $logoDark = \App\Models\SiteContent::get('logo_dark');
+    $logoLight = \App\Models\SiteContent::get('logo_light');
+@endphp
 <header><div class="w"><div class="hd"><a class="logo" href="#top">
-  @php($logoDark = \App\Models\SiteContent::get('logo_dark'))
-  @php($logoLight = \App\Models\SiteContent::get('logo_light'))
   <img class="logo-img logo-dark" src="{{ $logoDark ?: '/images/logo-dark.png' }}" alt="{{ config('app.name') }}" style="height:38px">
   <img class="logo-img logo-light" src="{{ $logoLight ?: '/images/logo-light.png' }}" alt="{{ config('app.name') }}" style="height:38px">
 </a>
