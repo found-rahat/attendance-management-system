@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Permission;
-use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -49,6 +48,12 @@ class PermissionSeeder extends Seeder
         ['name' => 'staff.create', 'label' => 'Add staff', 'group' => 'management', 'roles' => ['admin']],
         ['name' => 'staff.delete', 'label' => 'Remove staff', 'group' => 'management', 'roles' => ['admin']],
         ['name' => 'office.settings', 'label' => 'Manage office settings', 'group' => 'management', 'roles' => ['admin']],
+        ['name' => 'designation.view', 'label' => 'View designations', 'group' => 'management', 'roles' => ['super_admin', 'admin']],
+        ['name' => 'designation.manage', 'label' => 'Manage designations', 'group' => 'management', 'roles' => ['super_admin', 'admin']],
+
+        // Salary (company admin)
+        ['name' => 'salary.view', 'label' => 'View salary module', 'group' => 'salary', 'roles' => ['super_admin', 'admin']],
+        ['name' => 'salary.manage', 'label' => 'Manage salary module', 'group' => 'salary', 'roles' => ['super_admin', 'admin']],
 
         // Self service (staff)
         ['name' => 'attendance.checkin', 'label' => 'Check in / out', 'group' => 'self', 'roles' => ['staff']],

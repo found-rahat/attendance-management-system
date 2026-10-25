@@ -9,10 +9,11 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password', 'role', 'company_id'])]
+#[Fillable(['name', 'email', 'password', 'role', 'designation', 'designation_id', 'office_id', 'company_id'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -113,9 +114,24 @@ class User extends Authenticatable
         return $this->belongsTo(Company::class);
     }
 
+    public function designationRecord(): BelongsTo
+    {
+        return $this->belongsTo(Designation::class, 'designation_id');
+    }
+
     public function attendances(): HasMany
     {
         return $this->hasMany(StaffAttendance::class, 'staff_id');
+    }
+
+    public function promotions(): HasMany
+    {
+        return $this->hasMany(StaffPromotion::class, 'staff_id');
+    }
+
+    public function latestSalary(): HasOne
+    {
+        return $this->hasOne(StaffSalary::class, 'staff_id')->latestOfMany('effective_from');
     }
 
     public function isSuperAdmin(): bool

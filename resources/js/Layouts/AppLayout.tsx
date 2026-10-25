@@ -27,6 +27,8 @@ const NAV: Record<Role, NavItem[]> = {
         { href: '/admin/attendance-report', label: 'Attendance', icon: 'calendar', permission: 'attendance.view', exact: true },
         { href: '/admin/attendance-report/map', label: 'Live Map', icon: 'track', permission: 'attendance.map' },
         { href: '/admin/staff', label: 'Staff', icon: 'users', permission: 'staff.view' },
+        { href: '/admin/designations', label: 'Designations', icon: 'admin', permission: 'designation.view' },
+        { href: '/admin/salary', label: 'Salary', icon: 'pay', permission: 'salary.view' },
         { href: '/admin/subscription', label: 'Subscription', icon: 'card', permission: 'subscription.view' },
         { href: '/admin/settings', label: 'Office Settings', icon: 'settings', permission: 'office.settings' },
     ],

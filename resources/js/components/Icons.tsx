@@ -159,6 +159,13 @@ const ICONS: Record<string, ReactNode> = {
         </>
     ),
     check: <path d="M5 12l4 4 10-10" />,
+    gift: (
+        <>
+            <rect x="3" y="8" width="18" height="4" rx="1" />
+            <path d="M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7M12 8v13M12 8c-2 0-4-1.5-4-3.5S10 2 12 3.5 16 3 16 4.5 14 8 12 8z" />
+        </>
+    ),
+    minus: <path d="M5 12h14" />,
     sun: (
         <>
             <circle cx="12" cy="12" r="4" />
