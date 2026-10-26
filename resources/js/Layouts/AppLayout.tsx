@@ -126,40 +126,9 @@ export default function AppLayout({ children }: PropsWithChildren) {
 
     return (
         <div className="relative min-h-screen flex flex-col">
-            {/* Top header - fixed full width */}
-            <header className="fixed top-0 left-0 right-0 z-40 h-16 flex items-center justify-between border-b border-line bg-nav/95 backdrop-blur px-6">
-                <button
-                    type="button"
-                    className="text-brand-3 lg:hidden"
-                    onClick={() => setOpen((o) => !o)}
-                    aria-label="Toggle menu"
-                >
-                    <Icon name="menu" size={22} />
-                </button>
-                <Logo size="sm" fallback={brand} />
-                <div className="ml-auto flex items-center gap-3">
-                    {showExpiryWarning && (
-                        <div className="px-3 py-1 rounded-md border border-warn bg-warn-bg text-warn text-xs">
-                            Subscription expires in {daysLeft} day(s)
-                        </div>
-                    )}
-                    <ThemeToggle />
-                    <div className="flex items-center gap-2 rounded-xl border border-line bg-panel/60 px-3 py-1">
-                        <span className="text-xs text-ink-soft">{roleLabel}</span>
-                        <button
-                            type="button"
-                            className="text-xs text-brand-3 hover:underline"
-                            onClick={logout}
-                        >
-                            Logout
-                        </button>
-                    </div>
-                </div>
-            </header>
-
-            {/* Sidebar - fixed, starts below header on desktop */}
+            {/* Sidebar - full height on desktop, slide-in from left on mobile */}
             <aside
-                className={`fixed top-[64px] left-0 z-50 flex h-[calc(100vh-64px)] w-[288px] flex-col border-r border-line bg-linear-to-b from-aside-top to-bg transition-transform duration-200 lg:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full'}`}
+                className={`fixed inset-y-0 left-0 z-50 flex w-[288px] flex-col border-r border-line bg-linear-to-b from-aside-top to-bg transition-transform duration-300 ${open ? 'translate-x-0' : '-translate-x-full'}`}
             >
                 <div className="flex items-center justify-between gap-2 px-5 pt-5 pb-6">
                     <Logo />
@@ -252,7 +221,38 @@ export default function AppLayout({ children }: PropsWithChildren) {
                 />
             )}
 
-            {/* Main content - shifted right for sidebar on desktop, below header */}
+            {/* Header - desktop: to the right of sidebar; mobile: full width */}
+            <header className={`sticky top-0 z-40 flex items-center justify-between border-b border-line bg-nav/95 backdrop-blur px-6 py-3 ${open ? 'blur-sm' : ''} lg:ml-[288px] lg:sticky lg:top-0`}>
+                <button
+                    type="button"
+                    className="text-brand-3 lg:hidden"
+                    onClick={() => setOpen((o) => !o)}
+                    aria-label="Toggle menu"
+                >
+                    <Icon name="menu" size={22} />
+                </button>
+                <Logo size="sm" fallback={brand} />
+                <div className="ml-auto flex items-center gap-3">
+                    {showExpiryWarning && (
+                        <div className="px-3 py-1 rounded-md border border-warn bg-warn-bg text-warn text-xs">
+                            Subscription expires in {daysLeft} day(s)
+                        </div>
+                    )}
+                    <ThemeToggle />
+                    <div className="flex items-center gap-2 rounded-xl border border-line bg-panel/60 px-3 py-1">
+                        <span className="text-xs text-ink-soft">{roleLabel}</span>
+                        <button
+                            type="button"
+                            className="text-xs text-brand-3 hover:underline"
+                            onClick={logout}
+                        >
+                            Logout
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            {/* Main content */}
             <div className="flex-1 flex flex-col lg:ml-[288px] pt-16 min-h-[calc(100vh-64px)]">
                 <main className="flex-1 overflow-y-auto p-4 lg:p-6">{children}</main>
             </div>
