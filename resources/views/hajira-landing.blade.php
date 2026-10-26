@@ -111,6 +111,8 @@ header .ib{width:34px;height:34px;font-size:16px;flex:none}
 </style>
 <style>
 footer.ft{padding:56px 0 22px;margin-top:40px;text-align:left;background:linear-gradient(160deg,#1e1b4b,#312e81);color:#c7c9ee;border-top:0}
+footer.ft .logo-dark{display:none!important}
+footer.ft .logo-light{display:block!important}
 .ftg{display:grid;grid-template-columns:1.5fr 1fr 1fr 1.3fr;gap:32px}
 .ft h4{color:#fff;font-size:16px;margin-bottom:12px}
 .ft ul{list-style:none;padding:0;margin:0}.ft li{margin-bottom:8px;font-size:14.5px}
