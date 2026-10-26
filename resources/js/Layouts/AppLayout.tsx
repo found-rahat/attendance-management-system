@@ -99,6 +99,8 @@ export default function AppLayout({ children }: PropsWithChildren) {
         },
     );
 
+    const [openDropdowns, setOpenDropdowns] = useState<Set<string>>(new Set());
+
     const subscription = user?.company?.subscription;
     const daysLeft = subscription?.days_left ?? null;
     const EXPIRY_WARNING_DAYS = 5;
@@ -110,21 +112,54 @@ export default function AppLayout({ children }: PropsWithChildren) {
 
     const close = () => setOpen(false);
     const logout = () => router.post('/logout');
+    const toggleDropdown = (label: string) => {
+        setOpenDropdowns((prev) => {
+            const next = new Set(prev);
+            if (next.has(label)) {
+                next.delete(label);
+            } else {
+                next.add(label);
+            }
+            return next;
+        });
+    };
 
     return (
-        <div className="flex min-h-screen">
-            {open && (
-                <div
-                    className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
-                    onClick={close}
-                    aria-hidden="true"
-                />
-            )}
+        <div className="relative min-h-screen flex flex-col">
+            {/* Top header - fixed full width */}
+            <header className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between border-b border-line bg-nav/95 backdrop-blur px-6 py-3 lg:ml-[288px]">
+                <button
+                    type="button"
+                    className="text-brand-3 lg:hidden"
+                    onClick={() => setOpen((o) => !o)}
+                    aria-label="Toggle menu"
+                >
+                    <Icon name="menu" size={22} />
+                </button>
+                <Logo size="sm" fallback={brand} />
+                <div className="ml-auto flex items-center gap-3">
+                    {showExpiryWarning && (
+                        <div className="px-3 py-1 rounded-md border border-warn bg-warn-bg text-warn text-xs">
+                            Subscription expires in {daysLeft} day(s)
+                        </div>
+                    )}
+                    <ThemeToggle />
+                    <div className="flex items-center gap-2 rounded-xl border border-line bg-panel/60 px-3 py-1">
+                        <span className="text-xs text-ink-soft">{roleLabel}</span>
+                        <button
+                            type="button"
+                            className="text-xs text-brand-3 hover:underline"
+                            onClick={logout}
+                        >
+                            Logout
+                        </button>
+                    </div>
+                </div>
+            </header>
 
+            {/* Sidebar - fixed, starts below header on desktop */}
             <aside
-                className={`fixed inset-y-0 left-0 z-50 flex w-[288px] flex-col border-r border-line bg-linear-to-b from-aside-top to-bg transition-transform duration-200 lg:translate-x-0 ${
-                    open ? 'translate-x-0' : '-translate-x-full'
-                }`}
+                className={`fixed top-[64px] left-0 z-50 flex h-[calc(100vh-64px)] w-[288px] flex-col border-r border-line bg-linear-to-b from-aside-top to-bg transition-transform duration-200 lg:translate-x-0 lg:top-0 lg:h-full ${open ? 'translate-x-0' : '-translate-x-full'}`}
             >
                 <div className="flex items-center justify-between gap-2 px-5 pt-5 pb-6">
                     <Logo />
@@ -144,15 +179,16 @@ export default function AppLayout({ children }: PropsWithChildren) {
                 <nav className="mx-3 flex-1 overflow-y-auto rounded-2xl border border-line bg-nav">
                     {items.map((item) => {
                         const active = item.children ? hasActiveChild(path, item) : isActive(path, item);
+                        const dropdownOpen = item.children ? openDropdowns.has(item.label) : false;
 
                         if (item.children) {
                             return (
                                 <div key={item.label} className="mb-1">
                                     <button
                                         type="button"
-                                        onClick={() => {}}
+                                        onClick={() => toggleDropdown(item.label)}
                                         className={`w-full flex items-center gap-2 px-4 py-2.5 text-sm rounded-xl transition ${
-                                            active ? 'bg-brand text-white' : 'bg-transparent text-ink-soft hover:bg-panel-3'
+                                            active || dropdownOpen ? 'bg-brand text-white' : 'bg-transparent text-ink-soft hover:bg-panel-3'
                                         }`}
                                     >
                                         {item.icon && <Icon name={item.icon} size={18} />}
@@ -160,28 +196,32 @@ export default function AppLayout({ children }: PropsWithChildren) {
                                         <Icon
                                             name="chevron-down"
                                             size={14}
-                                            className="ml-auto opacity-50"
+                                            className={`ml-auto opacity-50 transition-transform duration-200 ${
+                                                dropdownOpen ? 'rotate-180' : ''
+                                            }`}
                                         />
                                     </button>
-                                    <div className="px-2 space-y-0.5">
-                                        {item.children.map((child) => {
-                                            const childActive = isActive(path, child);
+                                    {dropdownOpen && (
+                                        <div className="px-2 space-y-0.5">
+                                            {item.children.map((child) => {
+                                                const childActive = isActive(path, child);
 
-                                            return (
-                                                <Link
-                                                    key={child.href}
-                                                    href={child.href}
-                                                    className={`flex items-center gap-2 px-3 py-1.5 text-xs rounded-lg transition ${
-                                                        childActive ? 'bg-brand text-white' : 'bg-transparent text-ink-soft hover:bg-panel-3'
-                                                    }`}
-                                                    onClick={close}
-                                                >
-                                                    {child.icon && <Icon name={child.icon} size={16} />}
-                                                    <span>{child.label}</span>
-                                                </Link>
-                                            );
-                                        })}
-                                    </div>
+                                                return (
+                                                    <Link
+                                                        key={child.href}
+                                                        href={child.href}
+                                                        className={`flex items-center gap-2 px-3 py-1.5 text-xs rounded-lg transition ${
+                                                            childActive ? 'bg-brand text-white' : 'bg-transparent text-ink-soft hover:bg-panel-3'
+                                                        }`}
+                                                        onClick={close}
+                                                    >
+                                                        {child.icon && <Icon name={child.icon} size={16} />}
+                                                        <span>{child.label}</span>
+                                                    </Link>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
                                 </div>
                             );
                         }
@@ -203,37 +243,17 @@ export default function AppLayout({ children }: PropsWithChildren) {
                 </nav>
             </aside>
 
-            <div className="flex-1 flex flex-col">
-                <header className="sticky top-0 z-20 flex items-center justify-between border-b border-line bg-nav/95 backdrop-blur px-6 py-3">
-                    <button
-                        type="button"
-                        className="text-brand-3 lg:hidden"
-                        onClick={() => setOpen((o) => !o)}
-                        aria-label="Toggle menu"
-                    >
-                        <Icon name="menu" size={22} />
-                    </button>
-                    <Logo size="sm" fallback={brand} />
-                    <div className="ml-auto flex items-center gap-3">
-                        {showExpiryWarning && (
-                            <div className="px-3 py-1 rounded-md border border-warn bg-warn-bg text-warn text-xs">
-                                Subscription expires in {daysLeft} day(s)
-                            </div>
-                        )}
-                        <ThemeToggle />
-                        <div className="flex items-center gap-2 rounded-xl border border-line bg-panel/60 px-3 py-1">
-                            <span className="text-xs text-ink-soft">{roleLabel}</span>
-                            <button
-                                type="button"
-                                className="text-xs text-brand-3 hover:underline"
-                                onClick={logout}
-                            >
-                                Logout
-                            </button>
-                        </div>
-                    </div>
-                </header>
+            {/* Mobile overlay */}
+            {open && (
+                <div
+                    className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+                    onClick={close}
+                    aria-hidden="true"
+                />
+            )}
 
+            {/* Main content - shifted right for sidebar on desktop, below header */}
+            <div className="flex-1 flex flex-col lg:ml-[288px] pt-[64px] lg:pt-0 min-h-[calc(100vh-64px)]">
                 <main className="flex-1 overflow-y-auto p-4 lg:p-6">{children}</main>
             </div>
         </div>
