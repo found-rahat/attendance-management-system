@@ -244,10 +244,30 @@ Route::middleware('auth')->group(function () {
             Route::put('/site', [SuperSiteController::class, 'update'])
                 ->middleware('permission:content.manage')
                 ->name('site.update');
-            Route::post('/site/logos', [SuperSiteController::class, 'updateLogos'])
+
+            // Modules
+            Route::get('/site/general', [SuperSiteController::class, 'general'])
+                ->middleware('permission:content.manage')
+                ->name('site.general');
+            Route::put('/site/general', [SuperSiteController::class, 'updateGeneral'])
+                ->middleware('permission:content.manage')
+                ->name('site.general.update');
+            Route::get('/site/hero', [SuperSiteController::class, 'hero'])
+                ->middleware('permission:content.manage')
+                ->name('site.hero');
+            Route::put('/site/hero', [SuperSiteController::class, 'updateHero'])
+                ->middleware('permission:content.manage')
+                ->name('site.hero.update');
+            Route::get('/site/logos', [SuperSiteController::class, 'logos'])
                 ->middleware('permission:content.manage')
                 ->name('site.logos');
+            Route::post('/site/logos', [SuperSiteController::class, 'updateLogos'])
+                ->middleware('permission:content.manage')
+                ->name('site.logos.update');
 
+            Route::get('/site/features', [SiteFeatureController::class, 'index'])
+                ->middleware('permission:content.manage')
+                ->name('site.features');
             Route::post('/site/features', [SiteFeatureController::class, 'store'])
                 ->middleware('permission:content.manage')
                 ->name('site.features.store');
@@ -258,6 +278,9 @@ Route::middleware('auth')->group(function () {
                 ->middleware('permission:content.manage')
                 ->name('site.features.destroy');
 
+            Route::get('/site/faqs', [SiteFaqController::class, 'index'])
+                ->middleware('permission:content.manage')
+                ->name('site.faqs');
             Route::post('/site/faqs', [SiteFaqController::class, 'store'])
                 ->middleware('permission:content.manage')
                 ->name('site.faqs.store');

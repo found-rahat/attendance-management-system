@@ -9,6 +9,11 @@ use Illuminate\Http\Request;
 
 class SiteFeatureController extends Controller
 {
+    public function index()
+    {
+        return LandingFeature::query()->ordered()->get();
+    }
+
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([

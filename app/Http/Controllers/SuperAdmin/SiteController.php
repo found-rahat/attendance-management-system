@@ -17,14 +17,21 @@ class SiteController extends Controller
 {
     public function index(): Response
     {
-        return Inertia::render('SuperAdmin/Site', [
+        return Inertia::render('SuperAdmin/Site/Index', [
             'site' => SiteContent::allWithDefaults(),
             'features' => LandingFeature::query()->ordered()->get(),
             'faqs' => LandingFaq::query()->ordered()->get(),
         ]);
     }
 
-    public function update(Request $request): RedirectResponse
+    public function general(): Response
+    {
+        return Inertia::render('SuperAdmin/Site/General', [
+            'site' => SiteContent::allWithDefaults(),
+        ]);
+    }
+
+    public function updateGeneral(Request $request): RedirectResponse
     {
         $data = $request->validate([
             'brand_name' => ['nullable', 'string', 'max:255'],
@@ -53,6 +60,38 @@ class SiteController extends Controller
         $content->save();
 
         return back()->with('message', 'Website content updated.');
+    }
+
+    public function hero(): Response
+    {
+        return Inertia::render('SuperAdmin/Site/Hero', [
+            'site' => SiteContent::allWithDefaults(),
+        ]);
+    }
+
+    public function updateHero(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'hero_title' => ['nullable', 'string', 'max:255'],
+            'hero_subtitle' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $content = SiteContent::current();
+
+        foreach ($data as $key => $value) {
+            $content->{$key} = $value;
+        }
+
+        $content->save();
+
+        return back()->with('message', 'Hero section updated.');
+    }
+
+    public function logos(): Response
+    {
+        return Inertia::render('SuperAdmin/Site/Logos', [
+            'site' => SiteContent::allWithDefaults(),
+        ]);
     }
 
     public function updateLogos(Request $request): RedirectResponse

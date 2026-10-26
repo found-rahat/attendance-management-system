@@ -9,6 +9,11 @@ use Illuminate\Http\Request;
 
 class SiteFaqController extends Controller
 {
+    public function index()
+    {
+        return LandingFaq::query()->ordered()->get();
+    }
+
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
