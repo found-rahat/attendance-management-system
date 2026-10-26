@@ -127,7 +127,7 @@ export default function AppLayout({ children }: PropsWithChildren) {
     return (
         <div className="relative min-h-screen flex flex-col">
             {/* Top header - fixed full width */}
-            <header className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between border-b border-line bg-nav/95 backdrop-blur px-6 py-3 lg:ml-[288px]">
+            <header className="fixed top-0 left-0 right-0 z-40 h-16 flex items-center justify-between border-b border-line bg-nav/95 backdrop-blur px-6">
                 <button
                     type="button"
                     className="text-brand-3 lg:hidden"
@@ -159,7 +159,7 @@ export default function AppLayout({ children }: PropsWithChildren) {
 
             {/* Sidebar - fixed, starts below header on desktop */}
             <aside
-                className={`fixed top-[64px] left-0 z-50 flex h-[calc(100vh-64px)] w-[288px] flex-col border-r border-line bg-linear-to-b from-aside-top to-bg transition-transform duration-200 lg:translate-x-0 lg:top-0 lg:h-full ${open ? 'translate-x-0' : '-translate-x-full'}`}
+                className={`fixed top-[64px] left-0 z-50 flex h-[calc(100vh-64px)] w-[288px] flex-col border-r border-line bg-linear-to-b from-aside-top to-bg transition-transform duration-200 lg:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full'}`}
             >
                 <div className="flex items-center justify-between gap-2 px-5 pt-5 pb-6">
                     <Logo />
@@ -253,7 +253,7 @@ export default function AppLayout({ children }: PropsWithChildren) {
             )}
 
             {/* Main content - shifted right for sidebar on desktop, below header */}
-            <div className="flex-1 flex flex-col lg:ml-[288px] pt-[64px] lg:pt-0 min-h-[calc(100vh-64px)]">
+            <div className="flex-1 flex flex-col lg:ml-[288px] pt-16 min-h-[calc(100vh-64px)]">
                 <main className="flex-1 overflow-y-auto p-4 lg:p-6">{children}</main>
             </div>
         </div>
