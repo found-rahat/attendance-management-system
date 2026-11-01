@@ -51,8 +51,10 @@ class CompanyController extends Controller
             'radius_meters' => ['required', 'integer', 'between:10,10000'],
             'late_after' => ['required', 'date_format:H:i'],
             'timezone' => ['required', 'string', 'max:64', 'timezone'],
-            'max_accuracy_meters' => ['required', 'integer', 'between:10,500'],
+            'max_accuracy_meters' => ['nullable', 'integer', 'between:10,500'],
             'subscription_plan_id' => ['nullable', 'integer', Rule::exists('subscription_plans', 'id')],
+            'staff_limit_override' => ['nullable', 'integer', 'min:0'],
+            'subscription_amount_override' => ['nullable', 'numeric', 'min:0'],
 
             'admin_name' => ['required', 'string', 'max:255'],
             'admin_email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')],
@@ -73,12 +75,14 @@ class CompanyController extends Controller
                 'radius_meters' => $data['radius_meters'],
                 'late_after' => $data['late_after'],
                 'timezone' => $data['timezone'],
-                'max_accuracy_meters' => $data['max_accuracy_meters'],
+                'max_accuracy_meters' => $data['max_accuracy_meters'] ?? null,
                 'is_active' => true,
                 'subscription_plan_id' => $data['subscription_plan_id'] ?? null,
                 'subscription_status' => 'active',
                 'subscription_starts_at' => $startsAt->toDateString(),
                 'subscription_ends_at' => $plan?->periodEnd($startsAt)->toDateString(),
+                'staff_limit_override' => $data['staff_limit_override'] ?? null,
+                'subscription_amount_override' => $data['subscription_amount_override'] ?? null,
             ]);
 
             User::create([
@@ -100,6 +104,8 @@ class CompanyController extends Controller
             'subscription_status' => ['required', Rule::in(['active', 'trialing', 'expired', 'cancelled'])],
             'subscription_starts_at' => ['nullable', 'date'],
             'subscription_ends_at' => ['nullable', 'date', 'after_or_equal:subscription_starts_at'],
+            'staff_limit_override' => ['nullable', 'integer', 'min:0'],
+            'subscription_amount_override' => ['nullable', 'numeric', 'min:0'],
         ]);
 
         // Assigning a plan starts a fresh billing period: unless an explicit

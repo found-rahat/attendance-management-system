@@ -38,7 +38,7 @@ class OfficeSettingsController extends Controller
             'radius_meters' => ['required', 'integer', 'between:10,10000'],
             'late_after' => ['required', 'date_format:H:i'],
             'timezone' => ['required', 'string', 'max:64', 'timezone'],
-            'max_accuracy_meters' => ['required', 'integer', 'between:10,500'],
+            'max_accuracy_meters' => ['nullable', 'integer', 'between:10,500'],
         ]);
 
         $company->update($data);

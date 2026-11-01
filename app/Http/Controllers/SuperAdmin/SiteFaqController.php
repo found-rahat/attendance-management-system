@@ -6,12 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Models\LandingFaq;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class SiteFaqController extends Controller
 {
-    public function index()
+    public function index(): Response
     {
-        return LandingFaq::query()->ordered()->get();
+        return Inertia::render('SuperAdmin/Site/Faq', [
+            'faqs' => LandingFaq::query()->ordered()->get(),
+        ]);
     }
 
     public function store(Request $request): RedirectResponse

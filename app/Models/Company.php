@@ -22,6 +22,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'subscription_status',
     'subscription_starts_at',
     'subscription_ends_at',
+    'staff_limit_override',
+    'subscription_amount_override',
 ])]
 class Company extends Model
 {
@@ -38,6 +40,8 @@ class Company extends Model
             'is_active' => 'boolean',
             'subscription_starts_at' => 'date',
             'subscription_ends_at' => 'date',
+            'staff_limit_override' => 'integer',
+            'subscription_amount_override' => 'decimal:2',
         ];
     }
 
@@ -76,6 +80,10 @@ class Company extends Model
      */
     public function staffLimit(): int
     {
+        if ($this->staff_limit_override !== null) {
+            return max(0, (int) $this->staff_limit_override);
+        }
+
         $limit = $this->plan?->staff_limit;
 
         if ($limit === null) {

@@ -1,5 +1,5 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 import { Icon } from '../components/Icons';
 import Logo from '../components/Logo';
@@ -27,7 +27,7 @@ const NAV: Record<Role, NavItem[]> = {
             icon: 'globe',
             permission: 'content.manage',
             children: [
-                { href: '/super/site', label: 'Overview', icon: 'layout' },
+                { href: '/super/site', label: 'Overview', icon: 'layout', exact: true },
                 { href: '/super/site/general', label: 'General' },
                 { href: '/super/site/hero', label: 'Hero Section' },
                 { href: '/super/site/logos', label: 'Logos & Branding' },
@@ -76,7 +76,9 @@ function hasActiveChild(path: string, item: NavItem): boolean {
 
 export default function AppLayout({ children }: PropsWithChildren) {
     const { auth } = usePage().props;
-    const [open, setOpen] = useState(false);
+    const [open, setOpen] = useState(() =>
+        typeof window !== 'undefined' ? window.matchMedia('(min-width: 1024px)').matches : false,
+    );
     const path = useCurrentPath();
 
     const user = auth.user;
@@ -100,6 +102,8 @@ export default function AppLayout({ children }: PropsWithChildren) {
     );
 
     const [openDropdowns, setOpenDropdowns] = useState<Set<string>>(new Set());
+    const [profileOpen, setProfileOpen] = useState(false);
+    const profileRef = useRef<HTMLDivElement>(null);
 
     const subscription = user?.company?.subscription;
     const daysLeft = subscription?.days_left ?? null;
@@ -111,7 +115,26 @@ export default function AppLayout({ children }: PropsWithChildren) {
     const setup = user?.company?.name ?? (isSuper ? 'Platform Control' : roleLabel);
 
     const close = () => setOpen(false);
-    const logout = () => router.post('/logout');
+    const csrfToken =
+        typeof document !== 'undefined'
+            ? document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? ''
+            : '';
+    const logout = () => {
+        setProfileOpen(false);
+        router.post('/logout', { _token: csrfToken }, {
+            onSuccess: () => window.location.assign('/'),
+            onError: () => window.location.assign('/'),
+        });
+    };
+    useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+                setProfileOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, []);
     const toggleDropdown = (label: string) => {
         setOpenDropdowns((prev) => {
             const next = new Set(prev);
@@ -128,7 +151,7 @@ export default function AppLayout({ children }: PropsWithChildren) {
         <div className="relative min-h-screen flex flex-col">
             {/* Sidebar - full height on desktop, slide-in from left on mobile */}
             <aside
-                className={`fixed inset-y-0 left-0 z-50 flex w-[288px] flex-col border-r border-line bg-linear-to-b from-aside-top to-bg transition-transform duration-300 ${open ? 'translate-x-0' : '-translate-x-full'}`}
+                className={`fixed inset-y-0 left-0 z-50 flex w-[288px] flex-col border-r border-line bg-linear-to-b from-aside-top to-bg transition-transform duration-300 ${open ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}
             >
                 <div className="flex items-center justify-between gap-2 px-5 pt-5 pb-6">
                     <Logo />
@@ -148,7 +171,7 @@ export default function AppLayout({ children }: PropsWithChildren) {
                 <nav className="mx-3 flex-1 overflow-y-auto rounded-2xl border border-line bg-nav">
                     {items.map((item) => {
                         const active = item.children ? hasActiveChild(path, item) : isActive(path, item);
-                        const dropdownOpen = item.children ? openDropdowns.has(item.label) : false;
+                        const dropdownOpen = item.children ? (openDropdowns.has(item.label) || hasActiveChild(path, item)) : false;
 
                         if (item.children) {
                             return (
@@ -222,7 +245,7 @@ export default function AppLayout({ children }: PropsWithChildren) {
             )}
 
             {/* Header - desktop: to the right of sidebar; mobile: full width */}
-            <header className={`sticky top-0 z-40 flex items-center justify-between border-b border-line bg-nav/95 backdrop-blur px-6 py-3 ${open ? 'blur-sm' : ''} lg:ml-[288px] lg:sticky lg:top-0`}>
+            <header className={`sticky top-0 z-40 flex items-center justify-between border-b border-line bg-nav/95 backdrop-blur px-6 py-3 ${open && typeof window !== 'undefined' && !window.matchMedia('(min-width: 1024px)').matches ? 'blur-sm' : ''} lg:ml-[288px] lg:sticky lg:top-0`}>
                 <button
                     type="button"
                     className="text-brand-3 lg:hidden"
@@ -239,15 +262,34 @@ export default function AppLayout({ children }: PropsWithChildren) {
                         </div>
                     )}
                     <ThemeToggle />
-                    <div className="flex items-center gap-2 rounded-xl border border-line bg-panel/60 px-3 py-1">
-                        <span className="text-xs text-ink-soft">{roleLabel}</span>
+                    <div className="relative" ref={profileRef}>
                         <button
                             type="button"
-                            className="text-xs text-brand-3 hover:underline"
-                            onClick={logout}
+                            onClick={() => setProfileOpen((o) => !o)}
+                            className="flex items-center gap-2 rounded-xl border border-line bg-panel/60 px-3 py-1.5"
                         >
-                            Logout
+                            <span className="grid h-7 w-7 place-items-center rounded-full bg-brand/20 text-xs font-bold text-brand-3">
+                                {user?.name?.charAt(0)?.toUpperCase() ?? 'U'}
+                            </span>
+                            <span className="text-xs text-ink-soft">{roleLabel}</span>
+                            <Icon name="chevron-down" size={12} className={`text-muted transition-transform ${profileOpen ? 'rotate-180' : ''}`} />
                         </button>
+                        {profileOpen && (
+                            <div className="absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border border-line bg-panel shadow-lg">
+                                <div className="border-b border-line px-3 py-2">
+                                    <p className="text-sm font-semibold text-ink">{user?.name}</p>
+                                    <p className="truncate text-xs text-muted">{user?.email}</p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={logout}
+                                    className="flex w-full items-center gap-2 px-3 py-2 text-sm text-ink-soft transition hover:bg-panel-3"
+                                >
+                                    <Icon name="logout" size={16} />
+                                    Logout
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </header>

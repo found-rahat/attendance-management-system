@@ -29,7 +29,14 @@ use App\Http\Controllers\ThemeController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('hajira-landing');
+    return view('hajira-landing', [
+        'site' => \App\Models\SiteContent::landing(),
+        'plans' => \App\Models\SubscriptionPlan::query()
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('price')
+            ->get(),
+    ]);
 })->name('home');
 Route::get('/pricing', [SiteController::class, 'pricing'])->name('pricing');
 

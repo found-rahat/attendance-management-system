@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { MapContainer, TileLayer } from 'react-leaflet';
 import AppLayout from '../../Layouts/AppLayout';
 import { Icon } from '../../components/Icons';
-import { Badge, EmptyRow, Field, Flash, PageHeader } from '../../components/ui';
+import { Badge, EmptyRow, Field, Flash, Modal, PageHeader } from '../../components/ui';
 import { LocationPicker, Recenter } from '../../components/LocationPicker';
 import { formatDateShort, formatPrice } from '../../lib/format';
 import type { Plan } from '../../types';
@@ -26,6 +26,8 @@ type Company = {
     subscription_status: string;
     subscription_starts_at: string | null;
     subscription_ends_at: string | null;
+    staff_limit_override: number | null;
+    subscription_amount_override: number | null;
     staff_count: number;
     admins_count: number;
     attendances_count: number;
@@ -55,6 +57,8 @@ type FormValues = {
     timezone: string;
     max_accuracy_meters: string | number;
     subscription_plan_id: string | number;
+    staff_limit_override: string;
+    subscription_amount_override: string;
     admin_name: string;
     admin_email: string;
     admin_password: string;
@@ -78,6 +82,8 @@ function emptyForm(defaults: Defaults): FormValues {
         timezone: defaults.timezone,
         max_accuracy_meters: defaults.max_accuracy_meters,
         subscription_plan_id: '',
+        staff_limit_override: '',
+        subscription_amount_override: '',
         admin_name: '',
         admin_email: '',
         admin_password: '',
@@ -89,6 +95,11 @@ export default function Companies({ companies, plans, defaults }: Props) {
     const [values, setValues] = useState<FormValues>(() => emptyForm(defaults));
     const [submitting, setSubmitting] = useState(false);
     const [showForm, setShowForm] = useState(false);
+    const [editing, setEditing] = useState<Company | null>(null);
+    const [editStaffLimit, setEditStaffLimit] = useState<string>('');
+    const [editAmount, setEditAmount] = useState<string>('');
+    const [editStart, setEditStart] = useState<string>('');
+    const [editEnd, setEditEnd] = useState<string>('');
 
     const mapCenter: [number, number] =
         toNumber(values.latitude, 0) !== 0 || toNumber(values.longitude, 0) !== 0
@@ -135,15 +146,73 @@ export default function Companies({ companies, plans, defaults }: Props) {
         router.delete(`/super/companies/${company.id}`, { preserveScroll: true });
     }
 
-    function assignPlan(company: Company, planId: string) {
+    function saveSubscription(company: Company, patch: Partial<{
+        subscription_plan_id: number | null;
+        subscription_status: string;
+        subscription_starts_at: string | null;
+        subscription_ends_at: string | null;
+        staff_limit_override: number | null;
+        subscription_amount_override: number | null;
+    }>) {
         router.patch(
             `/super/companies/${company.id}/subscription`,
             {
-                subscription_plan_id: planId === '' ? null : Number(planId),
-                subscription_status: company.subscription_status || 'active',
+                subscription_plan_id:
+                    patch.subscription_plan_id !== undefined
+                        ? patch.subscription_plan_id
+                        : company.subscription_plan_id,
+                subscription_status:
+                    patch.subscription_status !== undefined
+                        ? patch.subscription_status
+                        : company.subscription_status || 'active',
+                subscription_starts_at:
+                    patch.subscription_starts_at !== undefined
+                        ? patch.subscription_starts_at
+                        : company.subscription_starts_at,
+                subscription_ends_at:
+                    patch.subscription_ends_at !== undefined
+                        ? patch.subscription_ends_at
+                        : company.subscription_ends_at,
+                staff_limit_override:
+                    patch.staff_limit_override !== undefined
+                        ? patch.staff_limit_override
+                        : company.staff_limit_override,
+                subscription_amount_override:
+                    patch.subscription_amount_override !== undefined
+                        ? patch.subscription_amount_override
+                        : company.subscription_amount_override,
             },
             { preserveScroll: true },
         );
+    }
+
+    function assignPlan(company: Company, planId: string) {
+        const plan = plans.find((p) => String(p.id) === planId);
+        saveSubscription(company, {
+            subscription_plan_id: planId === '' ? null : Number(planId),
+            staff_limit_override: plan ? plan.staff_limit : null,
+            subscription_amount_override: plan ? plan.price : null,
+        });
+    }
+
+    function openEdit(company: Company) {
+        setEditing(company);
+        setEditStaffLimit(company.staff_limit_override !== null ? String(company.staff_limit_override) : '');
+        setEditAmount(company.subscription_amount_override !== null ? String(company.subscription_amount_override) : '');
+        const today = new Date().toISOString().slice(0, 10);
+        setEditStart(company.subscription_starts_at ? String(company.subscription_starts_at).slice(0, 10) : today);
+        setEditEnd(company.subscription_ends_at ? String(company.subscription_ends_at).slice(0, 10) : '');
+    }
+
+    function saveEdit() {
+        if (!editing) return;
+        saveSubscription(editing, {
+            staff_limit_override: editStaffLimit === '' ? null : Number(editStaffLimit),
+            subscription_amount_override: editAmount === '' ? null : Number(editAmount),
+            subscription_starts_at: editStart || null,
+            subscription_ends_at: editEnd || null,
+        });
+        setEditing(null);
     }
 
     return (
@@ -159,8 +228,8 @@ export default function Companies({ companies, plans, defaults }: Props) {
 
             <Flash message={flash?.message} errors={errors} />
 
-            {showForm && (
-                <form onSubmit={submit} className="card mt-5 space-y-6 p-6">
+            <Modal open={showForm} onClose={() => setShowForm(false)} title="New company">
+                <form onSubmit={submit} className="space-y-6">
                     <div>
                         <h2 className="font-semibold">Company & office</h2>
                         <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -242,12 +311,35 @@ export default function Companies({ companies, plans, defaults }: Props) {
                             ))}
                         </select>
                     </Field>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <Field label="Staff limit (override)">
+                            <input
+                                type="number"
+                                min="0"
+                                className="input"
+                                value={values.staff_limit_override}
+                                onChange={(e) => update('staff_limit_override', e.target.value)}
+                                placeholder="Leave empty to use plan limit"
+                            />
+                        </Field>
+                        <Field label="Subscription amount (override)">
+                            <input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                className="input"
+                                value={values.subscription_amount_override}
+                                onChange={(e) => update('subscription_amount_override', e.target.value)}
+                                placeholder="Leave empty to use plan price"
+                            />
+                        </Field>
+                    </div>
 
                     <button type="submit" disabled={submitting} className="btn-primary">
                         {submitting ? 'Creating...' : 'Create company'}
                     </button>
                 </form>
-            )}
+            </Modal>
 
             <div className="card mt-5 overflow-x-auto">
                 <table className="data-table min-w-[860px]">
@@ -285,7 +377,9 @@ export default function Companies({ companies, plans, defaults }: Props) {
                                 <td>
                                     {company.staff_count}
                                     <span className="block text-xs text-muted">
-                                        {company.plan ? (company.plan.staff_limit <= 0 ? 'unlimited' : `limit ${company.plan.staff_limit}`) : 'default limit'}
+                                        {company.staff_limit_override !== null
+                                            ? `override ${company.staff_limit_override}`
+                                            : (company.plan ? (company.plan.staff_limit <= 0 ? 'unlimited' : `limit ${company.plan.staff_limit}`) : 'default limit')}
                                     </span>
                                 </td>
                                 <td>
@@ -313,7 +407,10 @@ export default function Companies({ companies, plans, defaults }: Props) {
                                         </Badge>
                                     </button>
                                 </td>
-                                <td>
+                                <td className="flex gap-2">
+                                    <button type="button" onClick={() => openEdit(company)} className="btn-ghost px-3 py-1.5 text-xs">
+                                        <Icon name="edit" size={14} /> Edit
+                                    </button>
                                     <button type="button" onClick={() => remove(company)} className="btn-danger px-3 py-1.5 text-xs">
                                         <Icon name="trash" size={14} /> Delete
                                     </button>
@@ -324,6 +421,52 @@ export default function Companies({ companies, plans, defaults }: Props) {
                     </tbody>
                 </table>
             </div>
+
+            <Modal open={editing !== null} onClose={() => setEditing(null)} title={editing ? `Edit ${editing.name}` : 'Edit company'}>
+                <div className="space-y-4">
+                    <Field label="Staff limit (override)">
+                        <input
+                            type="number"
+                            min="0"
+                            className="input"
+                            value={editStaffLimit}
+                            onChange={(e) => setEditStaffLimit(e.target.value)}
+                            placeholder="Leave empty to use plan limit"
+                        />
+                    </Field>
+                    <Field label="Subscription amount (override)">
+                        <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            className="input"
+                            value={editAmount}
+                            onChange={(e) => setEditAmount(e.target.value)}
+                            placeholder="Leave empty to use plan price"
+                        />
+                    </Field>
+                    <Field label="Subscription start date">
+                        <input
+                            type="date"
+                            className="input"
+                            value={editStart}
+                            onChange={(e) => setEditStart(e.target.value)}
+                        />
+                    </Field>
+                    <Field label="Subscription end date">
+                        <input
+                            type="date"
+                            className="input"
+                            value={editEnd}
+                            onChange={(e) => setEditEnd(e.target.value)}
+                        />
+                    </Field>
+                    <div className="flex justify-end gap-2">
+                        <button type="button" className="btn-ghost" onClick={() => setEditing(null)}>Cancel</button>
+                        <button type="button" className="btn-primary" onClick={saveEdit}>Update</button>
+                    </div>
+                </div>
+            </Modal>
         </AppLayout>
     );
 }

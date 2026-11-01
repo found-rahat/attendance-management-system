@@ -180,9 +180,9 @@ export default function StaffAttendance({ attendance, office }: Props) {
                                 </a>
                             </p>
                             {accuracy != null && (
-                                <p className={accuracy > office.max_accuracy ? 'text-warn' : ''}>
+                                <p className={office.max_accuracy && accuracy > office.max_accuracy ? 'text-warn' : ''}>
                                     GPS accuracy: {Math.round(accuracy)}m
-                                    {accuracy > office.max_accuracy &&
+                                    {office.max_accuracy && accuracy > office.max_accuracy &&
                                         ` (weak — ${office.max_accuracy}m-এর বেশি; approximate location)`}
                                 </p>
                             )}

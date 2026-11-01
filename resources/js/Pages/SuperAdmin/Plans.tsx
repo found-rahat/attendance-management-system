@@ -109,53 +109,55 @@ export default function SuperAdminPlans({ plans }: Props) {
             <Flash message={flash?.message} errors={errors} />
 
             {showForm && (
-                <form onSubmit={submit} className="card mt-5 space-y-5 p-6">
-                    <h2 className="font-semibold">{editing ? `Edit: ${editing.name}` : 'Create a plan'}</h2>
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => { setShowForm(false); setEditing(null); }}>
+                    <form onSubmit={submit} className="relative z-10 w-full max-w-lg mx-4 card p-6 space-y-5 overflow-y-auto max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+                        <h2 className="font-semibold">{editing ? `Edit: ${editing.name}` : 'Create a plan'}</h2>
 
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                        <Field label="Name">
-                            <input className="input" value={values.name} onChange={(e) => update('name', e.target.value)} />
-                        </Field>
-                        <Field label="Price (৳)">
-                            <input type="number" step="any" className="input" value={values.price} onChange={(e) => update('price', e.target.value)} />
-                        </Field>
-                        <Field label="Billing cycle">
-                            <select className="input" value={values.billing_cycle} onChange={(e) => update('billing_cycle', e.target.value)}>
-                                <option value="monthly">Monthly</option>
-                                <option value="yearly">Yearly</option>
-                            </select>
-                        </Field>
-                        <Field label="Staff limit (0 = unlimited)">
-                            <input type="number" className="input" value={values.staff_limit} onChange={(e) => update('staff_limit', e.target.value)} />
-                        </Field>
-                        <Field label="Sort order">
-                            <input type="number" className="input" value={values.sort_order} onChange={(e) => update('sort_order', e.target.value)} />
-                        </Field>
-                        <div className="flex items-end gap-6 pb-2">
-                            <label className="flex items-center gap-2 text-sm">
-                                <input type="checkbox" checked={values.is_active} onChange={(e) => update('is_active', e.target.checked)} className="h-4 w-4 accent-[#8b2cf5]" />
-                                Active
-                            </label>
-                            <label className="flex items-center gap-2 text-sm">
-                                <input type="checkbox" checked={values.is_featured} onChange={(e) => update('is_featured', e.target.checked)} className="h-4 w-4 accent-[#8b2cf5]" />
-                                Featured
-                            </label>
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                            <Field label="Name">
+                                <input className="input" value={values.name} onChange={(e) => update('name', e.target.value)} />
+                            </Field>
+                            <Field label="Price (৳)">
+                                <input type="number" step="any" className="input" value={values.price} onChange={(e) => update('price', e.target.value)} />
+                            </Field>
+                            <Field label="Billing cycle">
+                                <select className="input" value={values.billing_cycle} onChange={(e) => update('billing_cycle', e.target.value)}>
+                                    <option value="monthly">Monthly</option>
+                                    <option value="yearly">Yearly</option>
+                                </select>
+                            </Field>
+                            <Field label="Staff limit (0 = unlimited)">
+                                <input type="number" className="input" value={values.staff_limit} onChange={(e) => update('staff_limit', e.target.value)} />
+                            </Field>
+                            <Field label="Sort order">
+                                <input type="number" className="input" value={values.sort_order} onChange={(e) => update('sort_order', e.target.value)} />
+                            </Field>
+                            <div className="flex items-end gap-6 pb-2">
+                                <label className="flex items-center gap-2 text-sm">
+                                    <input type="checkbox" checked={values.is_active} onChange={(e) => update('is_active', e.target.checked)} className="h-4 w-4 accent-[#8b2cf5]" />
+                                    Active
+                                </label>
+                                <label className="flex items-center gap-2 text-sm">
+                                    <input type="checkbox" checked={values.is_featured} onChange={(e) => update('is_featured', e.target.checked)} className="h-4 w-4 accent-[#8b2cf5]" />
+                                    Featured
+                                </label>
+                            </div>
                         </div>
-                    </div>
 
-                    <Field label="Features (one per line)">
-                        <textarea rows={5} className="input" value={values.features} onChange={(e) => update('features', e.target.value)} placeholder={'5 staff accounts\nGPS geofence check-in'} />
-                    </Field>
+                        <Field label="Features (one per line)">
+                            <textarea rows={5} className="input" value={values.features} onChange={(e) => update('features', e.target.value)} placeholder={'5 staff accounts\nGPS geofence check-in'} />
+                        </Field>
 
-                    <div className="flex gap-3">
-                        <button type="submit" disabled={submitting} className="btn-primary">
-                            {submitting ? 'Saving...' : editing ? 'Update plan' : 'Create plan'}
-                        </button>
-                        <button type="button" onClick={() => { setShowForm(false); setEditing(null); }} className="btn-ghost">
-                            Cancel
-                        </button>
-                    </div>
-                </form>
+                        <div className="flex gap-3">
+                            <button type="submit" disabled={submitting} className="btn-primary">
+                                {submitting ? 'Saving...' : editing ? 'Update plan' : 'Create plan'}
+                            </button>
+                            <button type="button" onClick={() => { setShowForm(false); setEditing(null); }} className="btn-ghost">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
             )}
 
             <div className="mt-5 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
