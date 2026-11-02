@@ -222,11 +222,13 @@ export function Modal({
     onClose,
     title,
     children,
+    className = 'max-w-2xl',
 }: {
     open: boolean;
     onClose: () => void;
     title?: string;
     children: ReactNode;
+    className?: string;
 }) {
     if (!open) {
         return null;
@@ -239,7 +241,7 @@ export function Modal({
                 onClick={onClose}
                 aria-hidden="true"
             />
-            <div className="relative z-10 max-h-[90vh] w-full max-w-2xl overflow-auto rounded-2xl border border-line bg-panel p-5 shadow-[0_0_40px_rgba(0,0,0,0.6)]">
+            <div className={`relative z-10 w-full ${className} overflow-visible rounded-2xl border border-line bg-panel p-5 shadow-[0_0_40px_rgba(0,0,0,0.6)]`}>
                 <div className="mb-4 flex items-center justify-between gap-4">
                     <h3 className="font-semibold">{title}</h3>
                     <button
@@ -251,7 +253,7 @@ export function Modal({
                         <Icon name="close" size={18} />
                     </button>
                 </div>
-                {children}
+                <div className="overflow-visible">{children}</div>
             </div>
         </div>
     );

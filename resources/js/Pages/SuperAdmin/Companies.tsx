@@ -5,6 +5,7 @@ import AppLayout from '../../Layouts/AppLayout';
 import { Icon } from '../../components/Icons';
 import { Badge, EmptyRow, Field, Flash, Modal, PageHeader } from '../../components/ui';
 import { LocationPicker, Recenter } from '../../components/LocationPicker';
+import DatePicker from '../../components/DatePicker';
 import { formatDateShort, formatPrice } from '../../lib/format';
 import type { Plan } from '../../types';
 
@@ -422,45 +423,39 @@ export default function Companies({ companies, plans, defaults }: Props) {
                 </table>
             </div>
 
-            <Modal open={editing !== null} onClose={() => setEditing(null)} title={editing ? `Edit ${editing.name}` : 'Edit company'}>
+            <Modal open={editing !== null} onClose={() => setEditing(null)} title={editing ? `Edit ${editing.name}` : 'Edit company'} className="max-w-md">
                 <div className="space-y-4">
-                    <Field label="Staff limit (override)">
-                        <input
-                            type="number"
-                            min="0"
-                            className="input"
-                            value={editStaffLimit}
-                            onChange={(e) => setEditStaffLimit(e.target.value)}
-                            placeholder="Leave empty to use plan limit"
-                        />
-                    </Field>
-                    <Field label="Subscription amount (override)">
-                        <input
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            className="input"
-                            value={editAmount}
-                            onChange={(e) => setEditAmount(e.target.value)}
-                            placeholder="Leave empty to use plan price"
-                        />
-                    </Field>
-                    <Field label="Subscription start date">
-                        <input
-                            type="date"
-                            className="input"
-                            value={editStart}
-                            onChange={(e) => setEditStart(e.target.value)}
-                        />
-                    </Field>
-                    <Field label="Subscription end date">
-                        <input
-                            type="date"
-                            className="input"
-                            value={editEnd}
-                            onChange={(e) => setEditEnd(e.target.value)}
-                        />
-                    </Field>
+                    <div className="grid grid-cols-2 gap-3">
+                        <Field label="Staff limit (override)">
+                            <input
+                                type="number"
+                                min="0"
+                                className="input"
+                                value={editStaffLimit}
+                                onChange={(e) => setEditStaffLimit(e.target.value)}
+                                placeholder="Plan limit"
+                            />
+                        </Field>
+                        <Field label="Amount (override)">
+                            <input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                className="input"
+                                value={editAmount}
+                                onChange={(e) => setEditAmount(e.target.value)}
+                                placeholder="Plan price"
+                            />
+                        </Field>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <Field label="Start date">
+                            <DatePicker value={editStart} onChange={setEditStart} />
+                        </Field>
+                        <Field label="End date">
+                            <DatePicker value={editEnd} onChange={setEditEnd} />
+                        </Field>
+                    </div>
                     <div className="flex justify-end gap-2">
                         <button type="button" className="btn-ghost" onClick={() => setEditing(null)}>Cancel</button>
                         <button type="button" className="btn-primary" onClick={saveEdit}>Update</button>
