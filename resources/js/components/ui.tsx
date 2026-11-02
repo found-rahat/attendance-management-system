@@ -46,7 +46,7 @@ export function PageHeader({
     children?: ReactNode;
 }) {
     return (
-        <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-4">
                 <div className="grid h-11 w-11 place-items-center rounded-xl border border-brand/40 bg-brand/15 text-brand-3">
                     <Icon name={icon} size={22} />

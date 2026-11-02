@@ -223,7 +223,7 @@ export default function StaffAttendance({ attendance, office }: Props) {
                         className="inline-flex items-center gap-2 rounded-xl border border-ok/50 bg-ok/15 px-6 py-3 font-semibold text-ok-soft transition hover:bg-ok/25 disabled:opacity-50"
                     >
                         <Icon name="userOk" size={18} />
-                        {loading === 'in' ? 'Please wait...' : 'Check In'}
+                        {loading === 'in' ? 'Please wait...' : 'In time'}
                     </button>
 
                     <button
@@ -233,20 +233,20 @@ export default function StaffAttendance({ attendance, office }: Props) {
                         className="inline-flex items-center gap-2 rounded-xl border border-info/50 bg-info/15 px-6 py-3 font-semibold text-info-soft transition hover:bg-info/25 disabled:opacity-50"
                     >
                         <Icon name="logout" size={18} />
-                        {loading === 'out' ? 'Please wait...' : 'Check Out'}
+                        {loading === 'out' ? 'Please wait...' : 'Out time'}
                     </button>
                 </div>
 
                 <div className="mt-5 grid gap-2 rounded-xl border border-line-2 bg-panel-3 p-4 text-sm sm:grid-cols-2">
                     <p>
-                        <span className="font-medium text-ink-soft">Check In:</span>{' '}
+                        <span className="font-medium text-ink-soft">In time:</span>{' '}
                         {formatDateTime(attendance?.check_in_at)}
                         {attendance?.check_in_distance != null &&
                             ` (${Math.round(attendance.check_in_distance)}m from office)`}
                         {attendance?.check_in_outside && <Badge tone="gold">outside</Badge>}
                     </p>
                     <p>
-                        <span className="font-medium text-ink-soft">Check Out:</span>{' '}
+                        <span className="font-medium text-ink-soft">Out time:</span>{' '}
                         {formatDateTime(attendance?.check_out_at)}
                         {attendance?.check_out_outside && <Badge tone="gold">outside</Badge>}
                     </p>

@@ -47,7 +47,7 @@ const NAV: Record<Role, NavItem[]> = {
     ],
     staff: [
         { href: '/dashboard', label: 'Dashboard', icon: 'dashboard', permission: 'dashboard.view', exact: true },
-        { href: '/attendance', label: 'Check In / Out', icon: 'location', permission: 'attendance.checkin', exact: true },
+        { href: '/attendance', label: 'In time / Out time', icon: 'location', permission: 'attendance.checkin', exact: true },
         { href: '/attendance/history', label: 'My History', icon: 'clock', permission: 'attendance.history' },
     ],
 };
@@ -122,8 +122,7 @@ export default function AppLayout({ children }: PropsWithChildren) {
     const logout = () => {
         setProfileOpen(false);
         router.post('/logout', { _token: csrfToken }, {
-            onSuccess: () => window.location.assign('/'),
-            onError: () => window.location.assign('/'),
+            onSuccess: () => router.visit('/login'),
         });
     };
     useEffect(() => {
@@ -245,7 +244,7 @@ export default function AppLayout({ children }: PropsWithChildren) {
             )}
 
             {/* Header - desktop: to the right of sidebar; mobile: full width */}
-            <header className={`sticky top-0 z-40 flex items-center justify-between border-b border-line bg-nav/95 backdrop-blur px-6 py-3 ${open && typeof window !== 'undefined' && !window.matchMedia('(min-width: 1024px)').matches ? 'blur-sm' : ''} lg:ml-[288px] lg:sticky lg:top-0`}>
+            <header className={`relative z-40 flex items-center justify-between border-b border-line bg-nav/95 backdrop-blur px-6 py-2 ${open && typeof window !== 'undefined' && !window.matchMedia('(min-width: 1024px)').matches ? 'blur-sm' : ''} lg:ml-[288px]`}>
                 <button
                     type="button"
                     className="text-brand-3 lg:hidden"
@@ -295,8 +294,8 @@ export default function AppLayout({ children }: PropsWithChildren) {
             </header>
 
             {/* Main content */}
-            <div className="flex-1 flex flex-col lg:ml-[288px] pt-16 min-h-[calc(100vh-64px)]">
-                <main className="flex-1 overflow-y-auto p-4 lg:p-6">{children}</main>
+            <div className="flex-1 flex flex-col lg:ml-[288px] min-h-screen">
+                <main className="flex-1 overflow-y-auto px-4 pt-5 pb-4 lg:px-6 lg:pt-5 lg:pb-6">{children}</main>
             </div>
         </div>
     );
