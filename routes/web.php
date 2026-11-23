@@ -16,6 +16,8 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\SiteController;
 use App\Http\Controllers\Staff\AttendanceController;
+use App\Http\Controllers\Staff\AttendanceSessionController;
+use App\Models\AttendanceSession;
 use App\Http\Controllers\Staff\DashboardController as StaffDashboardController;
 use App\Http\Controllers\SuperAdmin\CompanyController;
 use App\Http\Controllers\SuperAdmin\DashboardController;
@@ -78,6 +80,18 @@ Route::middleware('auth')->group(function () {
         Route::post('/attendance/check-out', [AttendanceController::class, 'checkOut'])
             ->middleware(['throttle:10,1', 'permission:attendance.checkin'])
             ->name('attendance.check-out');
+
+        Route::get('/checkins', [AttendanceSessionController::class, 'index'])
+            ->middleware('permission:attendance.checkin')
+            ->name('checkins.index');
+
+        Route::post('/checkins/check-in', [AttendanceSessionController::class, 'checkIn'])
+            ->middleware(['throttle:10,1', 'permission:attendance.checkin'])
+            ->name('checkins.check-in');
+
+        Route::post('/checkins/{session}/check-out', [AttendanceSessionController::class, 'checkOut'])
+            ->middleware(['throttle:10,1', 'permission:attendance.checkin'])
+            ->name('checkins.check-out');
     });
 
     // ----- Company admin -----

@@ -13,6 +13,7 @@ type Settings = {
     longitude: number;
     radius_meters: number;
     late_after: string;
+    exit_time: string | null;
     timezone: string;
     max_accuracy_meters: number;
 };
@@ -27,6 +28,7 @@ type FormValues = {
     longitude: string | number;
     radius_meters: string | number;
     late_after: string;
+    exit_time: string;
     timezone: string;
     max_accuracy_meters: string | number;
 };
@@ -40,7 +42,7 @@ function toNumber(value: unknown, fallback: number): number {
 
 export default function OfficeSettings({ settings }: Props) {
     const { errors, flash } = usePage().props;
-    const [values, setValues] = useState<FormValues>(settings);
+    const [values, setValues] = useState<FormValues>({ ...settings, exit_time: settings.exit_time ?? '18:00' });
     const [submitting, setSubmitting] = useState(false);
     const [search, setSearch] = useState('');
     const [searching, setSearching] = useState(false);
@@ -174,6 +176,9 @@ export default function OfficeSettings({ settings }: Props) {
                     </Field>
                     <Field label="Late after (office time)">
                         <input type="time" className="input" value={values.late_after} onChange={(e) => update('late_after', e.target.value)} />
+                    </Field>
+                    <Field label="Exit time (office time)">
+                        <input type="time" className="input" value={values.exit_time} onChange={(e) => update('exit_time', e.target.value)} />
                     </Field>
                     <Field label="Max GPS accuracy (meters)">
                         <input type="number" className="input" value={values.max_accuracy_meters} onChange={(e) => update('max_accuracy_meters', e.target.value)} />

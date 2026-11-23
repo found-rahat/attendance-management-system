@@ -6,17 +6,20 @@ import AppLayout from '../../Layouts/AppLayout';
 import { Icon } from '../../components/Icons';
 import { Badge, EmptyRow, Modal, PageHeader, Pagination } from '../../components/ui';
 import { checkInIcon, officeIcon } from '../../lib/leaflet';
-import { formatDate, formatDateTime } from '../../lib/datetime';
+import { formatDate, formatDateTime, formatDuration, formatTime } from '../../lib/datetime';
 
 type Record = {
     id: number;
     date: string;
     check_in_at: string | null;
     check_out_at: string | null;
+    check_in_company_name: string | null;
+    check_out_company_name: string | null;
+    check_in_address: string | null;
+    check_out_address: string | null;
     check_in_latitude: number | null;
     check_in_longitude: number | null;
     check_in_distance: number | null;
-    check_in_outside: boolean;
     status: string;
 };
 
@@ -85,44 +88,27 @@ export default function StaffHistory({ records, office, filters }: Props) {
                     <thead>
                         <tr>
                             <th className="text-left">Date</th>
-                            <th>Check In</th>
-                            <th>Check Out</th>
+                            <th>Entry Time</th>
+                            <th>Exit Time</th>
+                            <th>Duration</th>
                             <th>Status</th>
-                            <th>Distance</th>
-                            <th>Location</th>
                         </tr>
                     </thead>
                     <tbody>
                         {rows.map((row) => (
-                            <tr key={row.id}>
-                                <td className="text-left">{formatDate(row.date)}</td>
-                                <td>{formatDateTime(row.check_in_at)}</td>
-                                <td>{formatDateTime(row.check_out_at)}</td>
+                            <tr key={row.id} className="cursor-pointer" onClick={() => setSelected(row)}>
+                                <td className="text-left font-medium">{formatDate(row.date)}</td>
+                                <td>{formatTime(row.check_in_at)}</td>
+                                <td>{formatTime(row.check_out_at)}</td>
+                                <td>{formatDuration(row.check_in_at, row.check_out_at)}</td>
                                 <td>
-                                    <Badge tone={row.status === 'late' ? 'warn' : 'ok'}>{row.status}</Badge>
-                                </td>
-                                <td>
-                                    <span className="inline-flex flex-wrap items-center justify-center gap-1">
-                                        {row.check_in_distance != null ? `${Math.round(row.check_in_distance)}m` : '—'}
-                                        {row.check_in_outside && <Badge tone="gold">outside</Badge>}
-                                    </span>
-                                </td>
-                                <td>
-                                    {row.check_in_latitude != null && row.check_in_longitude != null ? (
-                                        <button
-                                            type="button"
-                                            onClick={() => setSelected(row)}
-                                            className="inline-flex items-center gap-1 text-brand-3 hover:underline"
-                                        >
-                                            <Icon name="location" size={14} /> View
-                                        </button>
-                                    ) : (
-                                        '—'
-                                    )}
+                                    <Badge tone={row.status === 'completed' || row.status === 'present' ? 'ok' : row.status === 'late' || row.status === 'early_leave' ? 'warn' : 'neutral'}>
+                                        {row.status}
+                                    </Badge>
                                 </td>
                             </tr>
                         ))}
-                        {rows.length === 0 && <EmptyRow colSpan={6}>No attendance records found.</EmptyRow>}
+                        {rows.length === 0 && <EmptyRow colSpan={5}>No attendance records found.</EmptyRow>}
                     </tbody>
                 </table>
             </div>

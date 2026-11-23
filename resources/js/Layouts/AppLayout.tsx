@@ -48,6 +48,7 @@ const NAV: Record<Role, NavItem[]> = {
     staff: [
         { href: '/dashboard', label: 'Dashboard', icon: 'dashboard', permission: 'dashboard.view', exact: true },
         { href: '/attendance', label: 'In time / Out time', icon: 'location', permission: 'attendance.checkin', exact: true },
+        { href: '/checkins', label: 'Check In / Check Out', icon: 'location', permission: 'attendance.checkin', exact: true },
         { href: '/attendance/history', label: 'My History', icon: 'clock', permission: 'attendance.history' },
     ],
 };

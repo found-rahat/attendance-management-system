@@ -29,13 +29,6 @@ class AttendanceController extends Controller
         return Carbon::now($company->timezone)->toDateString();
     }
 
-    /**
-     * Validate the submitted GPS point and compute the distance from the
-     * office. Check In/Out is allowed from any place; points outside the
-     * company geofence are flagged instead of blocked.
-     *
-     * @return array{latitude:float, longitude:float, accuracy:float, distance:float, outside:bool}
-     */
     private function validatedLocation(Request $request, Company $company): array
     {
         $data = $request->validate([
@@ -174,6 +167,19 @@ class AttendanceController extends Controller
                 $company->timezone,
             );
 
+            $status = $row->check_in_at->greaterThan($lateAfter) ? 'late' : 'present';
+
+            if ($company->exit_time) {
+                $exitAt = Carbon::parse(
+                    $this->today($company).' '.$company->exit_time,
+                    $company->timezone,
+                );
+
+                if ($now->lessThan($exitAt)) {
+                    $status = 'early_leave';
+                }
+            }
+
             $row->update([
                 'check_out_at' => $now,
                 'check_out_latitude' => $location['latitude'],
@@ -181,7 +187,7 @@ class AttendanceController extends Controller
                 'check_out_accuracy' => (int) ceil($location['accuracy']),
                 'check_out_distance' => $location['distance'],
                 'check_out_outside' => $location['outside'],
-                'status' => $row->check_in_at->greaterThan($lateAfter) ? 'late' : 'present',
+                'status' => $status,
             ]);
 
             return $row->fresh();

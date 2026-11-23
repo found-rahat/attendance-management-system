@@ -2,12 +2,12 @@ import { Head } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import { Circle, MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import axios from 'axios';
-import AppLayout from '../../Layouts/AppLayout';
 import { Icon } from '../../components/Icons';
 import { Badge, PageHeader } from '../../components/ui';
+import AppLayout from '../../Layouts/AppLayout';
 import { checkInIcon, currentIcon, officeIcon } from '../../lib/leaflet';
 import { formatDateTime } from '../../lib/datetime';
+import axios from 'axios';
 
 type Attendance = {
     check_in_at: string | null;
@@ -159,7 +159,7 @@ export default function StaffAttendance({ attendance, office }: Props) {
 
                         {attendance?.check_in_latitude != null && attendance?.check_in_longitude != null && (
                             <Marker position={[attendance.check_in_latitude, attendance.check_in_longitude]} icon={checkInIcon}>
-                                <Popup>Check In location</Popup>
+                                <Popup>In time location</Popup>
                             </Marker>
                         )}
                     </MapContainer>
@@ -261,17 +261,14 @@ export default function StaffAttendance({ attendance, office }: Props) {
 
 function RecenterMap({ current, office }: { current: [number, number] | null; office: [number, number] }) {
     const map = useMap();
+    const [hasSet, setHasSet] = useState(false);
 
     useEffect(() => {
-        const bounds = L.latLngBounds([office]);
-
-        if (current) {
-            bounds.extend(current);
+        if (current && !hasSet) {
+            map.setView(current, 17);
+            setHasSet(true);
         }
-
-        map.fitBounds(bounds, { padding: [40, 40], maxZoom: 17 });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [current, office[0], office[1]]);
+    }, [current, hasSet, map]);
 
     return null;
 }

@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'longitude',
     'radius_meters',
     'late_after',
+    'exit_time',
     'timezone',
     'max_accuracy_meters',
     'is_active',

@@ -19,6 +19,7 @@ type Company = {
     longitude: number;
     radius_meters: number;
     late_after: string;
+    exit_time: string | null;
     timezone: string;
     max_accuracy_meters: number;
     is_active: boolean;
@@ -42,6 +43,7 @@ type Defaults = {
     longitude: number;
     radius_meters: number;
     late_after: string;
+    exit_time: string | null;
     timezone: string;
     max_accuracy_meters: number;
 };
@@ -55,6 +57,7 @@ type FormValues = {
     longitude: string | number;
     radius_meters: string | number;
     late_after: string;
+    exit_time: string;
     timezone: string;
     max_accuracy_meters: string | number;
     subscription_plan_id: string | number;
@@ -80,6 +83,7 @@ function emptyForm(defaults: Defaults): FormValues {
         longitude: defaults.longitude,
         radius_meters: defaults.radius_meters,
         late_after: defaults.late_after,
+        exit_time: defaults.exit_time ?? '18:00',
         timezone: defaults.timezone,
         max_accuracy_meters: defaults.max_accuracy_meters,
         subscription_plan_id: '',
@@ -272,6 +276,9 @@ export default function Companies({ companies, plans, defaults }: Props) {
                             </Field>
                             <Field label="Late after">
                                 <input type="time" className="input" value={values.late_after} onChange={(e) => update('late_after', e.target.value)} />
+                            </Field>
+                            <Field label="Exit time">
+                                <input type="time" className="input" value={values.exit_time} onChange={(e) => update('exit_time', e.target.value)} />
                             </Field>
                             <Field label="Max GPS accuracy (m)">
                                 <input type="number" className="input" value={values.max_accuracy_meters} onChange={(e) => update('max_accuracy_meters', e.target.value)} />

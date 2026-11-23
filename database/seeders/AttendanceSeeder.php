@@ -203,6 +203,7 @@ class AttendanceSeeder extends Seeder
             'longitude' => $lng,
             'radius_meters' => $radius,
             'late_after' => (string) config('attendance.late_after'),
+            'exit_time' => (string) config('attendance.exit_time'),
             'timezone' => (string) config('attendance.timezone'),
             'max_accuracy_meters' => (int) config('attendance.max_accuracy_meters'),
             'is_active' => true,

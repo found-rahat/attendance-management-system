@@ -37,9 +37,12 @@ class OfficeSettingsController extends Controller
             'longitude' => ['required', 'numeric', 'between:-180,180'],
             'radius_meters' => ['required', 'integer', 'between:10,10000'],
             'late_after' => ['required', 'date_format:H:i'],
+            'exit_time' => ['nullable', 'date_format:H:i'],
             'timezone' => ['required', 'string', 'max:64', 'timezone'],
             'max_accuracy_meters' => ['nullable', 'integer', 'between:10,500'],
         ]);
+
+        $data['exit_time'] = $data['exit_time'] ?? $company->exit_time ?? config('attendance.exit_time', '18:00');
 
         $company->update($data);
 
@@ -54,6 +57,7 @@ class OfficeSettingsController extends Controller
             'longitude' => $company->longitude,
             'radius_meters' => $company->radius_meters,
             'late_after' => $company->late_after,
+            'exit_time' => $company->exit_time,
             'timezone' => $company->timezone,
             'max_accuracy_meters' => $company->max_accuracy_meters,
         ];

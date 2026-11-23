@@ -22,6 +22,7 @@ return [
     | Maximum accepted GPS accuracy (in meters) from the client.
     */
     'late_after' => env('ATTENDANCE_LATE_AFTER', '09:15'),
+    'exit_time' => env('ATTENDANCE_EXIT_TIME', '18:00'),
     'max_accuracy_meters' => (int) env('ATTENDANCE_MAX_ACCURACY', 100),
 
     /*

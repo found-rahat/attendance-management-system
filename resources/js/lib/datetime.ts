@@ -39,6 +39,24 @@ export function formatTime(value: string | null | undefined): string {
     });
 }
 
+export function formatDuration(checkIn: string | null | undefined, checkOut: string | null | undefined): string {
+    if (!checkIn || !checkOut) {
+        return '—';
+    }
+    const start = new Date(checkIn).getTime();
+    const end = new Date(checkOut).getTime();
+    if (Number.isNaN(start) || Number.isNaN(end) || end < start) {
+        return '—';
+    }
+    const totalMinutes = Math.round((end - start) / 60000);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    if (hours === 0) {
+        return `${minutes}m`;
+    }
+    return `${hours}h ${minutes}m`;
+}
+
 export function formatDateTime(value: string | null | undefined): string {
     if (!value) {
         return '—';

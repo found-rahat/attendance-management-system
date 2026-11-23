@@ -38,6 +38,7 @@ const summaryMeta: Record<string, { label: string; tone: 'purple' | 'green' | 'o
     records: { label: 'Total Records', tone: 'purple', icon: 'dashboard' },
     present: { label: 'Present', tone: 'green', icon: 'userOk' },
     late: { label: 'Late', tone: 'orange', icon: 'clock' },
+    early_leave: { label: 'Early Leave', tone: 'gold', icon: 'logout' },
     checked_out: { label: 'Checked Out', tone: 'blue', icon: 'logout' },
     outside: { label: 'Outside Geofence', tone: 'gold', icon: 'location' },
     absent_estimate: { label: 'Absent (est.)', tone: 'cyan', icon: 'userX' },
@@ -59,7 +60,7 @@ export default function AttendanceReport({ rows, summary, filters, staff, office
         setEditValues({
             check_in_at: toLocalInput(row.check_in_at),
             check_out_at: toLocalInput(row.check_out_at),
-            status: row.status === 'late' ? 'late' : 'present',
+            status: row.status === 'late' ? 'late' : row.status === 'early_leave' ? 'early_leave' : 'present',
         });
         setSavingEdit(false);
     }
